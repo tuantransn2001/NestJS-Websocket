@@ -4,8 +4,8 @@ import { healthCheck } from '../common';
 import { STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
 import { MODEL_NAME } from '../ts/enums/model_enums';
 import { HealthCheck } from '../ts/types/common';
-import RestFullAPI from '../ts/utils/apiResponse';
-import HttpException from '../ts/utils/http.exception';
+import { RestFullAPI } from '../ts/utils/apiResponse';
+import { HttpException } from '../ts/utils/http.exception';
 
 @Injectable()
 class HealthCheckServices {
@@ -14,7 +14,7 @@ class HealthCheckServices {
     private healthCheckModel: Model<HealthCheck>,
   ) {}
 
-  checkScreen() {
+  public checkScreen() {
     try {
       return RestFullAPI.onSuccess(
         STATUS_CODE.STATUS_CODE_200,
@@ -28,25 +28,24 @@ class HealthCheckServices {
       } as HttpException);
     }
   }
-  async checkDB() {
+  public async checkDB() {
     try {
-      const checkData = async () =>
-        await this.healthCheckModel.findOneAndUpdate(
-          { event: 'check' },
-          { event: 'check' },
-          {
-            new: true,
-            upsert: true,
-          },
-        );
+      const checkData = await this.healthCheckModel.findOneAndUpdate(
+        { event: 'check' },
+        { event: 'check' },
+        {
+          new: true,
+          upsert: true,
+        },
+      );
 
-      const isUp: boolean = (await checkData()) !== undefined;
+      const isUp: boolean = checkData !== undefined;
 
       if (isUp) {
         return RestFullAPI.onSuccess(
           STATUS_CODE.STATUS_CODE_200,
           STATUS_MESSAGE.SUCCESS,
-          await checkData(),
+          checkData,
         );
       } else {
         return RestFullAPI.onFail(STATUS_CODE.STATUS_CODE_503, {

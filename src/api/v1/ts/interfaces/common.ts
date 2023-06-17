@@ -1,15 +1,15 @@
-interface Member {
+export interface Member {
   id: string;
   type: string;
 }
 
-interface Message {
+export interface Message {
   sender: Member;
   content: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
-interface Conversation {
+export interface Conversation {
   id: string;
   name: string;
   members: Member[];
@@ -17,5 +17,3 @@ interface Conversation {
   createdAt?: Date;
   updatedAt?: Date;
 }
-
-export { Conversation, Message, Member };

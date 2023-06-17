@@ -1,6 +1,6 @@
 import { STATUS_CODE } from '../enums/api_enums';
-import HttpException from './http.exception';
-class RestFullAPI {
+import { HttpException } from './http.exception';
+export class RestFullAPI {
   public data: any;
   public message: string;
   public statusCode: number;
@@ -22,5 +22,3 @@ class RestFullAPI {
     };
   }
 }
-
-export default RestFullAPI;

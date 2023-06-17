@@ -5,11 +5,11 @@ class HealthCheckController {
   constructor(private healthCheckServices: HealthCheckServices) {}
 
   @Get('/screen')
-  async checkScreen() {
+  public async checkScreen() {
     return this.healthCheckServices.checkScreen();
   }
   @Get('/db')
-  async checkDB() {
+  public async checkDB() {
     return this.healthCheckServices.checkDB();
   }
 }

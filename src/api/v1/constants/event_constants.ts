@@ -1,4 +1,4 @@
-const EVENTS = {
+export const EVENTS = {
   connection: 'connection',
   CLIENT: {
     SEND_FIRST_MESSAGE: 'SEND_FIRST_MESSAGE',
@@ -15,5 +15,3 @@ const EVENTS = {
     },
   },
 };
-
-export { EVENTS };

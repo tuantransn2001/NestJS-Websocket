@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { API_STUFF } from '../enums/api_enums';
 
-class RestFullAPIRequest {
+export class RestFullAPIRequest {
   public static URL: string = API_STUFF.uniberty_baseURL;
   public static token: string = API_STUFF.token;
 
@@ -11,5 +11,3 @@ class RestFullAPIRequest {
     });
   }
 }
-
-export default RestFullAPIRequest;

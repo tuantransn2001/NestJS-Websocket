@@ -19,14 +19,14 @@ class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   // ? ===================== CONNECT ======================
   // ? ====================================================
-  handleConnection(client: Socket) {
+  public handleConnection(client: Socket) {
     console.log(`Client is connected id: ${client.id}`);
     // * Handle logic....
   }
   // ? ====================================================
   // ? ==================== DISCONNECT ====================
   // ? ====================================================
-  handleDisconnect(client: Socket) {
+  public handleDisconnect(client: Socket) {
     console.log(`Client disconnected id: ${client.id}`);
     // * Handle logic....
   }
@@ -34,14 +34,14 @@ class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ==================== JOIN ROOM =====================
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.JOIN_ROOM)
-  listenClientJoinRoom(@MessageBody() { roomID }: ObjectType) {
+  public listenClientJoinRoom(@MessageBody() { roomID }: ObjectType) {
     this.chatService.handleClientJoinRoom({ roomID }, this.server);
   }
   // ? ====================================================
   // ? ================ SEND FIRST MESSAGE ================
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.SEND_FIRST_MESSAGE)
-  async listenClientSendFirstMessage(
+  public async listenClientSendFirstMessage(
     @MessageBody() clientFirstMessageData: ClientSendRoomMessDTO,
   ) {
     await this.chatService.handleClientSendFirstRoomMessage(
@@ -53,7 +53,7 @@ class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ================ SEND ROOM MESSAGE =================
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.SEND_ROOM_MESSAGE)
-  async listenClientSendRoomMessage(
+  public async listenClientSendRoomMessage(
     @MessageBody() clientRoomMessageData: ClientSendRoomMessDTO,
   ) {
     await this.chatService.handleClientSendRoomMessage(

@@ -1,13 +1,11 @@
 import { Member, Message } from '../interfaces/common';
 
-interface MembersDTO {
+export interface MembersDTO {
   members: Member[];
 }
 
-interface ClientSendRoomMessDTO {
+export interface ClientSendRoomMessDTO {
   conversationID?: string;
   members: Member[];
   message: Message;
 }
-
-export { MembersDTO, ClientSendRoomMessDTO };

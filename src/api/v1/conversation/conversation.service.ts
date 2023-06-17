@@ -6,8 +6,8 @@ import { STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
 import { MODEL_NAME } from '../ts/enums/model_enums';
 import { Conversation, Member } from '../ts/interfaces/common';
 import { ObjectType } from '../ts/types/common';
-import RestFullAPI from '../ts/utils/apiResponse';
-import HttpException from '../ts/utils/http.exception';
+import { RestFullAPI } from '../ts/utils/apiResponse';
+import { HttpException } from '../ts/utils/http.exception';
 import { UnibertyServices } from '../uniberty/uniberty.service';
 @Injectable()
 export class ConversationServices {
@@ -17,7 +17,7 @@ export class ConversationServices {
     private unibertyServices: UnibertyServices,
   ) {}
 
-  async getByMembers(membersData: MembersDTO) {
+  public async getByMembers(membersData: MembersDTO) {
     try {
       const foundConversation = await this.conversationModel.findOne({
         members: {
@@ -36,40 +36,38 @@ export class ConversationServices {
       } as HttpException);
     }
   }
-  async getContactList({ id, type }: Member) {
+  public async handleFormatUserContactInfo(id: string, members: Member[]) {
+    const IDList: ObjectType = members
+      .filter((member: Member) => {
+        const inputID: string = id;
+        return member.id.toString() !== inputID;
+      })
+      .reduce(
+        (IdListResult: ObjectType, member: Member) => {
+          const currentUserType = member.type as keyof ObjectType;
+          const currentUserID: number = +member.id as number;
+
+          IdListResult.ids[currentUserType].push(currentUserID);
+
+          return IdListResult;
+        },
+        {
+          ids: { student: [], admissions_officer: [], admin: [] },
+        },
+      ) as ObjectType;
+
+    const { data }: ObjectType = (await this.unibertyServices.searchListUser(
+      IDList,
+    )) as Record<string, any>;
+
+    return data;
+  }
+
+  public async getContactList({ id, type }: Member) {
     try {
       const foundUserContactList = await this.conversationModel.find({
         members: { $elemMatch: { id, type } },
       });
-
-      const handleFormatUserContactInfo = async (members: Member[]) => {
-        const IDList: ObjectType = members
-          .filter((member: Member) => {
-            const inputID: string = id.toString() as string;
-            return member.id.toString() !== inputID.toString();
-          })
-          .reduce(
-            (IdListResult: ObjectType, member: Member) => {
-              const currentUserType = member.type as keyof ObjectType;
-              const currentUserID: number = +member.id as number;
-
-              IdListResult.ids[currentUserType].push(currentUserID);
-
-              return IdListResult;
-            },
-            {
-              ids: { student: [], admissions_officer: [], admin: [] },
-            },
-          ) as ObjectType;
-
-        const { data }: ObjectType =
-          (await this.unibertyServices.searchListUser(IDList)) as Record<
-            string,
-            any
-          >;
-
-        return data;
-      };
 
       return RestFullAPI.onSuccess(
         STATUS_CODE.STATUS_CODE_200,
@@ -78,7 +76,7 @@ export class ConversationServices {
           const { id: conversationID, members, messages } = userContactItem;
           return {
             conversationID,
-            members: await handleFormatUserContactInfo(members),
+            members: await this.handleFormatUserContactInfo(id, members),
             messages,
           };
         }),

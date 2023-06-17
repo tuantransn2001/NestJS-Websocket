@@ -8,12 +8,12 @@ export class ConversationController {
   constructor(private conversationService: ConversationServices) {}
 
   @Get('/get-by-members')
-  async getConversationByMember(@Body() membersData: MembersDTO) {
+  public async getConversationByMember(@Body() membersData: MembersDTO) {
     return await this.conversationService.getByMembers(membersData);
   }
 
   @Get('/get-contact')
-  async getContactList(@Query() { id, type }: Member) {
+  public async getContactList(@Query() { id, type }: Member) {
     return await this.conversationService.getContactList({ id, type });
   }
 }

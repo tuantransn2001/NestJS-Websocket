@@ -4,8 +4,8 @@ import {
   API_RESPONSE_STATUS,
   API_STUFF,
 } from '../ts/enums/api_enums';
-import RestFullAPIRequest from '../ts/utils/apiRequest';
-import HttpException from '../ts/utils/http.exception';
+import { RestFullAPIRequest } from '../ts/utils/apiRequest';
+import { HttpException } from '../ts/utils/http.exception';
 
 @Injectable()
 class UnibertyServices {

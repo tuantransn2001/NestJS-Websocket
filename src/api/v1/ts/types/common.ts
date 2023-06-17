@@ -1,11 +1,9 @@
-import HttpException from '../utils/http.exception';
+import { HttpException } from '../utils/http.exception';
 
-type HealthCheck = {
+export type HealthCheck = {
   uptime: number;
   message: string | HttpException;
   timestamp: number;
 };
 
-type ObjectType = Record<string, any>;
-
-export { HealthCheck, ObjectType };
+export type ObjectType = Record<string, any>;
