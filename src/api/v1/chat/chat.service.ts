@@ -16,7 +16,6 @@ class ChatService {
     @Inject(MODEL_NAME.CONVERSATION)
     private conversationModel: Model<Conversation>,
   ) {}
-
   // ? ====================================================
   // ? CLIENT JOIN ROOM
   // ? ====================================================
