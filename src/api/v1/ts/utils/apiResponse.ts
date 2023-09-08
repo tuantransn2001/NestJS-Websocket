@@ -8,7 +8,7 @@ export class RestFullAPI {
   constructor() {
     this.data = {};
     this.message = '';
-    this.statusCode = STATUS_CODE.STATUS_CODE_200;
+    this.statusCode = STATUS_CODE.OK;
   }
 
   public static onSuccess(statusCode: number, message: string, data?: any) {

@@ -1,13 +1,26 @@
 import axios from 'axios';
-import { API_STUFF } from '../enums/api_enums';
+import { Agent } from 'https';
 
-export class RestFullAPIRequest {
-  public static URL: string = API_STUFF.uniberty_baseURL;
-  public static token: string = API_STUFF.token;
+type CreateInstancePayload = {
+  baseURL: string;
+  token?: string;
+};
+const agent = new Agent({
+  rejectUnauthorized: false,
+});
 
-  public static createInstance(baseURL: string | null) {
+export class Axios {
+  private static URL: string = process.env.UNIBERTY_BASE_URL;
+
+  public static createInstance({ baseURL, token }: CreateInstancePayload) {
     return axios.create({
-      baseURL: baseURL ? baseURL : RestFullAPIRequest.URL,
+      baseURL: baseURL || Axios.URL,
+      httpsAgent: agent,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
     });
   }
 }

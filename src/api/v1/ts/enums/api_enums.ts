@@ -1,17 +1,9 @@
-export enum API_STUFF {
-  uniberty_baseURL = `http://103.57.223.118:8888`,
-  token = `5cc085cf-0c55-4102-ae86-1456d613aa21`,
-}
-
-export enum API_RESPONSE_STATUS {
-  SUCCESS = 'Success',
-  FAIL = 'Fail',
-}
 export enum API_PATH {
-  admin_me = '/api/admin/me',
-  admin_login = '/api/admin/login',
-  student_login = '/api/admin/student',
-  search_list_user = '/api/admin/search-list-user',
+  get_chat_token = 'api/admin/create-token-api',
+  admin_login = 'api/admin/login',
+  student_login = 'api/admin/student',
+  search_list_user = 'api/admin/search-list-user',
+  search_user_by_name = 'api/admin/search-user-by-name',
 }
 export enum STATUS_MESSAGE {
   SUCCESS = 'Success',
@@ -20,19 +12,28 @@ export enum STATUS_MESSAGE {
   SERVER_ERROR = 'Server Error',
   NO_CONTENT = 'No Content',
   UN_AUTHORIZE = 'Unauthorize',
+  BAD_REQUEST = 'Bad Request',
   NOT_ACCEPTABLE = 'Not Acceptable',
   SERVICES_UNAVAILABLE = 'Services Unavailable',
+  METHOD_NOT_ALLOW = 'Method Not Allow',
+  UNPROCESSABLE_ENTITY = 'Unprocessable Entity Exception',
 }
 
 export enum STATUS_CODE {
-  STATUS_CODE_200 = 200, // * Get / Modify
-  STATUS_CODE_201 = 201, // * Create
-  STATUS_CODE_202 = 202, // * Delete
-  STATUS_CODE_204 = 204, // ! No Content
-  STATUS_CODE_401 = 401, // ! Un Authorize
-  STATUS_CODE_404 = 404, // ! Not Found
-  STATUS_CODE_406 = 406, // ! Not Acceptable
-  STATUS_CODE_409 = 409, // ! Conflict
-  STATUS_CODE_500 = 500, // ! Server Error
-  STATUS_CODE_503 = 503, // ! Services Unavailable
+  OK = 200,
+  CREATED = 201,
+  ACCEPTED = 202,
+  NO_CONTENT = 204,
+  BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
+  PAYMENT_REQUIRED = 402,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  METHOD_NOT_ALLOWED = 405,
+  CONFLICT = 409,
+  GONE = 410,
+  BAD_GATEWAY = 502,
+  SERVICE_UNAVAILABLE = 503,
+  GATEWAY_TIMEOUT = 504,
+  INTERNAL_SERVER_ERROR = 500,
 }

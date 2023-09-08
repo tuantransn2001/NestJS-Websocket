@@ -1,16 +1,23 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ChatModule } from './chat/chat.module';
-import { ConversationModule } from './conversation/conversation.module';
 import { HealthCheckModule } from './health-check/healthCheck.module';
+import { LoggerModule } from 'nestjs-pino';
+import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            singleLine: true,
+          },
+        },
+      },
     }),
-    ConversationModule,
-    HealthCheckModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     ChatModule,
+    HealthCheckModule,
   ],
 })
 export class AppModule {}
