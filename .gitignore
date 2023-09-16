@@ -395,7 +395,10 @@ Temporary Items
 =======
 # Local
 .env
-.env-development
 dist
 .webpack
 .serverless/**/*.zip
+
+# Docker ignore
+Dockerfile
+.dockerignore

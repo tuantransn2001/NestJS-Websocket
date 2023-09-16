@@ -9,11 +9,11 @@ export const MemberType = z.object({
 });
 export const MessageType = z.object({
   id: StringIDType,
-  sender: MemberType,
-  content: z.string(),
   isDelete: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  sender: MemberType,
+  content: z.string(),
 });
 
 export const MessageDTOType = z.object({
@@ -60,6 +60,18 @@ export const DeleteMessageSchema = z.object({
   messageID: UUIDType,
   conversationID: UUIDType,
 });
+// ? ==> EDIT MESSAGE
+export const EditMessageSchema = DeleteMessageSchema.merge(
+  z.object({
+    dto: MessageType.omit({
+      id: true,
+      isDelete: true,
+      createdAt: true,
+      updatedAt: true,
+      sender: true,
+    }),
+  }),
+);
 // ? ==> DELETE CONVERSATION
 export const DeleteConversationSchema = z.object({ id: StringIDType });
 // ? ==> REQUEST MESSAGE

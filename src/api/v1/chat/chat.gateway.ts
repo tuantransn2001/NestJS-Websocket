@@ -20,6 +20,7 @@ import {
   RequestRoomMessageDTO,
   RequestContactListDTO,
   SearchUserByNameDTO,
+  EditMessageDTO,
 } from './dto/input';
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -126,7 +127,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.webSocketServer,
     );
   }
-
   // ? ====================================================
   // ? ==================== SEARCH USER =================== /* =>> DONE
   // ? ====================================================
@@ -136,6 +136,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     return this.chatService.handleSearchUserByName(
       searchUserByNameDTO,
+      this.webSocketServer,
+    );
+  }
+  // ? ====================================================
+  // ? ==================== EDIT MESSAGE ================== /* =>> DONE
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.EDIT_MESSAGE)
+  public async listenClientEditMessage(
+    @MessageBody() editMessageDTO: EditMessageDTO,
+  ) {
+    return this.chatService.handleEditMessage(
+      editMessageDTO,
       this.webSocketServer,
     );
   }

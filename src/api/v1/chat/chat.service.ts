@@ -16,6 +16,7 @@ import {
   RequestRoomMessageDTO,
   SendRoomMessageDTO,
   JoinRoomDTO,
+  EditMessageDTO,
 } from './dto/input';
 
 import {
@@ -39,12 +40,14 @@ import {
   SearchUserByNameSchema,
   SendRoomMessageSchema,
   TypingSchema,
+  EditMessageSchema,
 } from './shared/chat.shema';
 import {
   ConversationType,
   MemberType,
   MemberTypeArray,
 } from './shared/chat.interface';
+import { handleErrorNotFound } from '../ts/utils/errorByStatusCode';
 
 @Injectable()
 export class ChatService {
@@ -230,6 +233,68 @@ export class ChatService {
         EVENTS.SERVER.DELETE_CONVERSATION_RESULT,
         errorHandler(err),
       );
+    }
+  }
+  // ? ====================================================
+  // ? EDIT MESSAGE
+  // ? ====================================================
+  public async handleEditMessage<D extends EditMessageDTO, S extends Server>(
+    editMessageDTO: D,
+    server: S,
+  ) {
+    this.logger.log(`EDIT MESSAGE`, editMessageDTO);
+    try {
+      const data = EditMessageSchema.parse(editMessageDTO);
+      const { messageID, conversationID, dto } = data;
+
+      const foundConversation = await this.conversationModel.findOne({
+        id: conversationID,
+      });
+
+      if (foundConversation) {
+        const sourceMessageUpdateSelector = ({ id }) => id === messageID;
+
+        const targetMessageUpdateIndex = foundConversation.messages.findIndex(
+          sourceMessageUpdateSelector,
+        );
+
+        if (targetMessageUpdateIndex !== -1) {
+          const updateMessageData = {
+            ...foundConversation.messages[targetMessageUpdateIndex],
+            ...dto,
+          };
+          foundConversation.messages.splice(
+            targetMessageUpdateIndex,
+            1,
+            updateMessageData,
+          );
+
+          await foundConversation.save();
+
+          server.sockets.emit(
+            EVENTS.SERVER.EDIT_MESSAGE_RESULT,
+            RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS),
+          );
+          this.logger.log(`EDIT MESSAGE - Successfully!!!}`);
+        } else {
+          const messageError = `messageID: ${messageID} ${STATUS_MESSAGE.NOT_FOUND}`;
+          server.sockets.emit(
+            EVENTS.SERVER.EDIT_MESSAGE_RESULT,
+            handleErrorNotFound(messageError),
+          );
+          this.logger.log(`EDIT MESSAGE - Fail!!! - ${messageError}`);
+        }
+      } else {
+        const messageError = `conversationID: ${conversationID} ${STATUS_MESSAGE.NOT_FOUND}`;
+        server.sockets.emit(
+          EVENTS.SERVER.EDIT_MESSAGE_RESULT,
+          handleErrorNotFound(messageError),
+        );
+        this.logger.log(`EDIT MESSAGE - Fail!!! - ${messageError}`);
+      }
+    } catch (err) {
+      server.sockets.emit(EVENTS.SERVER.EDIT_MESSAGE_RESULT, errorHandler(err));
+      this.logger.log(`EDIT MESSAGE - Bad Request!!!`, errorHandler(err));
     }
   }
   // ? ====================================================

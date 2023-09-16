@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   DeleteConversationSchema,
   DeleteMessageSchema,
+  EditMessageSchema,
   JoinRoomSchema,
   RequestContactListSchema,
   RequestMessageSchema,
@@ -14,6 +15,7 @@ export type JoinRoomDTO = z.infer<typeof JoinRoomSchema>;
 export type SendRoomMessageDTO = z.infer<typeof SendRoomMessageSchema>;
 export type TypingDTO = z.infer<typeof TypingSchema>;
 export type DeleteMessageDTO = z.infer<typeof DeleteMessageSchema>;
+export type EditMessageDTO = z.infer<typeof EditMessageSchema>;
 export type DeleteConversationDTO = z.infer<typeof DeleteConversationSchema>;
 export type RequestRoomMessageDTO = z.infer<typeof RequestMessageSchema>;
 export type RequestContactListDTO = z.infer<typeof RequestContactListSchema>;
