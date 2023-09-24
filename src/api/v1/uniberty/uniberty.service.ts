@@ -8,7 +8,7 @@ import { errorHandler } from '../ts/utils/errorHandler';
 import { HttpException } from '../ts/utils/http.exception';
 
 @Injectable()
-class UnibertyServices {
+class UnibertyService {
   private static async getAdminAccessToken() {
     try {
       const { status, data } = await Axios.createInstance({
@@ -29,7 +29,7 @@ class UnibertyServices {
   private static async getChatToken() {
     try {
       const { data: getAccessTokenResult }: ObjectType =
-        await UnibertyServices.getAdminAccessToken();
+        await UnibertyService.getAdminAccessToken();
       const { status, data } = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
         token: getAccessTokenResult.access_token,
@@ -42,7 +42,7 @@ class UnibertyServices {
   public async searchListUser(ids: Record<string, Array<any>>) {
     try {
       const { data: getChatTokenData }: ObjectType =
-        await UnibertyServices.getChatToken();
+        await UnibertyService.getChatToken();
 
       const result = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
@@ -61,7 +61,7 @@ class UnibertyServices {
   public async searchUserByName(name: string) {
     try {
       const { data: chatTokenData }: ObjectType =
-        await UnibertyServices.getChatToken();
+        await UnibertyService.getChatToken();
       const searchUserByNameResult = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
       }).get(API_PATH.search_user_by_name, {
@@ -92,4 +92,4 @@ class UnibertyServices {
       );
   }
 }
-export { UnibertyServices };
+export { UnibertyService };

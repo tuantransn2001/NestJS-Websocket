@@ -1,16 +1,16 @@
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheckServices } from './healthCheck.service';
+import { HealthCheckService } from './healthCheck.service';
 @Controller('/healthCheck')
 class HealthCheckController {
-  constructor(private healthCheckServices: HealthCheckServices) {}
+  constructor(private healthCheckService: HealthCheckService) {}
 
   @Get('/screen')
   public async checkScreen() {
-    return this.healthCheckServices.checkScreen();
+    return this.healthCheckService.checkScreen();
   }
   @Get('/db')
   public async checkDB() {
-    return this.healthCheckServices.checkDB();
+    return this.healthCheckService.checkDB();
   }
 }
 

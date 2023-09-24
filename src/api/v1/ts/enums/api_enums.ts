@@ -14,7 +14,7 @@ export enum STATUS_MESSAGE {
   UN_AUTHORIZE = 'Unauthorize',
   BAD_REQUEST = 'Bad Request',
   NOT_ACCEPTABLE = 'Not Acceptable',
-  SERVICES_UNAVAILABLE = 'Services Unavailable',
+  SERVICE_UNAVAILABLE = 'Service Unavailable',
   METHOD_NOT_ALLOW = 'Method Not Allow',
   UNPROCESSABLE_ENTITY = 'Unprocessable Entity Exception',
 }

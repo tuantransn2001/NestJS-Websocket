@@ -3,6 +3,7 @@ import { ChatModule } from './chat/chat.module';
 import { HealthCheckModule } from './health-check/healthCheck.module';
 import { LoggerModule } from 'nestjs-pino';
 import { ConfigModule } from '@nestjs/config';
+import { LocalFileModule } from './localFile/localFile.module';
 @Module({
   imports: [
     LoggerModule.forRoot({
@@ -15,7 +16,11 @@ import { ConfigModule } from '@nestjs/config';
         },
       },
     }),
-    ConfigModule.forRoot({ isGlobal: true }),
+
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    LocalFileModule,
     ChatModule,
     HealthCheckModule,
   ],

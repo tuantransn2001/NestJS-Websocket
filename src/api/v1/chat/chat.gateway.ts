@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
-import { EVENTS } from '../common/constants/event_constants';
+import { EVENTS } from './constants/event_constants';
 import { ChatService } from './chat.service';
 import {
   JoinRoomDTO,
@@ -53,6 +53,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   // ? ================ SEND ROOM MESSAGE ================= /* =>> DONE
   // ? ====================================================
+
   @SubscribeMessage(EVENTS.CLIENT.SEND_ROOM_MESSAGE)
   public async listenClientSendRoomMessage(
     @MessageBody() clientSendRoomMessDTO: SendRoomMessageDTO,

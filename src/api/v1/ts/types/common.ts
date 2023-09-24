@@ -1,10 +1,3 @@
-import { HttpException } from '../utils/http.exception';
-
-export type HealthCheck = {
-  uptime: number;
-  message: string | HttpException;
-  timestamp: number;
-};
 export type WsAuthMiddlewarePayload = {
   token: string;
   type: string;

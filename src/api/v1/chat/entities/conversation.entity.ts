@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-export const ConversationSchema = new mongoose.Schema(
+import { MODEL_NAME } from '../../ts/enums/common';
+export const Conversation = new mongoose.Schema(
   {
-    id: { type: String },
+    id: { type: String, default: uuidv4() },
     name: { type: String },
     isDelete: { type: Boolean, default: false },
     members: {
@@ -28,5 +29,5 @@ export const ConversationSchema = new mongoose.Schema(
     createdAt: { type: Date },
     updatedAt: { type: Date },
   },
-  { timestamps: true, minimize: false },
+  { timestamps: true, minimize: false, collection: MODEL_NAME.CONVERSATION },
 );

@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Server } from 'socket.io';
 import { MODEL_NAME } from '../ts/enums/common';
-import { EVENTS } from '../common/constants/event_constants';
+import { EVENTS } from './constants/event_constants';
 import { RestFullAPI } from '../ts/utils/apiResponse';
 import { STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
 import { errorHandler } from '../ts/utils/errorHandler';
@@ -25,7 +25,7 @@ import {
   handleGetUniqObjInArr,
 } from '../common';
 import { map as asyncMap } from 'awaity';
-import { UnibertyServices } from '../uniberty/uniberty.service';
+import { UnibertyService } from '../uniberty/uniberty.service';
 import {
   handleGetAllMessageByConversationID,
   handleGetFullUserDetailByIDList,
@@ -43,19 +43,19 @@ import {
   EditMessageSchema,
 } from './shared/chat.shema';
 import {
-  ConversationType,
+  IConversation,
   MemberType,
   MemberTypeArray,
 } from './shared/chat.interface';
-import { handleErrorNotFound } from '../ts/utils/errorByStatusCode';
+import { handleErrorNotFound } from '../ts/utils';
 
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger();
   constructor(
     @Inject(MODEL_NAME.CONVERSATION)
-    private conversationModel: Model<ConversationType>,
-    private unibertyServices: UnibertyServices,
+    private conversationModel: Model<IConversation>,
+    private unibertyService: UnibertyService,
   ) {}
 
   // ? ====================================================
@@ -95,7 +95,6 @@ export class ChatService {
     );
     try {
       const data = SendRoomMessageSchema.parse(sendRoomMessageDTO);
-
       const { conversationID, message } = data;
       await this.conversationModel
         .findOneAndUpdate(
@@ -107,7 +106,7 @@ export class ChatService {
         .then(async () => {
           const responseConversation =
             await handleGetAllMessageByConversationID(
-              this.unibertyServices,
+              this.unibertyService,
               this.conversationModel,
               conversationID,
             );
@@ -157,7 +156,7 @@ export class ChatService {
       const data = SendRoomMessageSchema.parse(sendRoomMessageDTO);
       const conversationID = uuidv4();
       const { members, message } = data;
-      const newConversationDocument: ConversationType = {
+      const newConversationDocument: IConversation = {
         id: conversationID,
         members,
         messages: [message],
@@ -168,7 +167,7 @@ export class ChatService {
         .then(async (response) => {
           const responseConversation =
             await handleGetAllMessageByConversationID(
-              this.unibertyServices,
+              this.unibertyService,
               this.conversationModel,
               conversationID,
             );
@@ -397,7 +396,7 @@ export class ChatService {
         ['id', 'type'],
       );
       const arrUniqMemberFullDetail = await handleGetFullUserDetailByIDList(
-        this.unibertyServices,
+        this.unibertyService,
         arrUniqMemberDetail,
       );
 
@@ -421,7 +420,7 @@ export class ChatService {
 
       const responseContactList = await asyncMap(
         foundUserContactList,
-        async (userContactItem: ConversationType) => {
+        async (userContactItem: IConversation) => {
           const {
             id: conversationID,
             members,
@@ -474,7 +473,7 @@ export class ChatService {
       if (isGetByID) {
         // ? Case choose from contact item
         const responseMessages = await handleGetAllMessageByConversationID(
-          this.unibertyServices,
+          this.unibertyService,
           this.conversationModel,
           id,
         );
@@ -487,7 +486,7 @@ export class ChatService {
         // ? Case choose from search item
 
         const responseMessages = await handleGetAllConversationByMembers(
-          this.unibertyServices,
+          this.unibertyService,
           this.conversationModel,
           members,
         );
@@ -517,7 +516,7 @@ export class ChatService {
       const data = SearchUserByNameSchema.parse(searchUserByNameDTO);
       const { name } = data;
 
-      const userListResponse = await this.unibertyServices.searchUserByName(
+      const userListResponse = await this.unibertyService.searchUserByName(
         name,
       );
       server.emit(EVENTS.SERVER.RECEIVE_USER_LIST, userListResponse);

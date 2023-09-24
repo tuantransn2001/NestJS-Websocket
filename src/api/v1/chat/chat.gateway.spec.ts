@@ -3,8 +3,8 @@ import { ChatGateway } from './chat.gateway';
 import { INestApplication } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { modelDefineProvider } from '../common/provider';
-import { ConversationSchema } from '../schema/conversation.schema';
-import { UnibertyServices } from '../uniberty/uniberty.service';
+import { ConversationSchema } from './entities/conversation.entity';
+import { UnibertyService } from '../uniberty/uniberty.service';
 import { DatabaseModule } from '../database/database.module';
 import { MODEL_NAME } from '../ts/enums/common';
 async function createNestApp(): Promise<INestApplication> {
@@ -14,7 +14,7 @@ async function createNestApp(): Promise<INestApplication> {
       ...modelDefineProvider(MODEL_NAME.CONVERSATION, ConversationSchema),
       ChatGateway,
       ChatService,
-      UnibertyServices,
+      UnibertyService,
     ],
   }).compile();
   return testingModule.createNestApplication();

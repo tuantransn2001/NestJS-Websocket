@@ -5,6 +5,7 @@ export enum PROVIDER_NAME {
 export enum MODEL_NAME {
   CONVERSATION = 'Conversation',
   HEALTH_CHECK = 'HealthCheck',
+  LOCAL_FILE = 'LocalFile',
 }
 
 export enum USER_TYPE {

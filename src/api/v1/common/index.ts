@@ -1,10 +1,11 @@
-import { HealthCheck, ObjectType } from '../ts/types/common';
+import { ObjectType } from '../ts/types/common';
 import {
   MemberType,
   MessageType,
   MessageTypeArray,
   UserType,
 } from '../chat/shared/chat.interface';
+import { IHealthCheck } from '../health-check/shared/healthCheck.interface';
 
 export const isEmpty = (target: ObjectType | any[]): boolean => {
   return target instanceof Array
@@ -14,7 +15,7 @@ export const isEmpty = (target: ObjectType | any[]): boolean => {
     : Object.keys(target).length === 0;
 };
 
-export const healthCheck: HealthCheck = {
+export const healthCheck: IHealthCheck = {
   uptime: process.uptime(),
   timestamp: Date.now(),
   message: 'OK',

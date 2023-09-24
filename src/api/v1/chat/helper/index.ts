@@ -8,18 +8,18 @@ import {
 } from '../../common';
 import { STATUS_CODE, STATUS_MESSAGE } from '../../ts/enums/api_enums';
 import { errorHandler, HttpException, RestFullAPI } from '../../ts/utils';
-import { UnibertyServices } from '../../uniberty/uniberty.service';
+import { UnibertyService } from '../../uniberty/uniberty.service';
 import {
-  ConversationType,
   ConversationTypeArray,
+  IConversation,
   MemberType,
   MemberTypeArray,
 } from '../shared/chat.interface';
 import { async as asyncFilter } from 'awaity';
 import { ObjectType } from '../../ts/types/common';
 export const handleGetAllConversationByMembers = async (
-  unibertyServices: UnibertyServices,
-  conversationModel: Model<ConversationType>,
+  unibertyService: UnibertyService,
+  conversationModel: Model<IConversation>,
   members: MemberTypeArray,
 ) => {
   try {
@@ -49,7 +49,7 @@ export const handleGetAllConversationByMembers = async (
     } else {
       const foundSingleConversation = await asyncFilter(
         foundConversation,
-        async ({ members }: ConversationType) => isSingleChat(members),
+        async ({ members }: IConversation) => isSingleChat(members),
       ).then(async (conversationRes: ConversationTypeArray) => {
         const {
           id: conversationID,
@@ -61,7 +61,7 @@ export const handleGetAllConversationByMembers = async (
         return {
           conversationID,
           members: handleConvertUserIDToString(
-            await handleGetFullUserDetailByIDList(unibertyServices, members),
+            await handleGetFullUserDetailByIDList(unibertyService, members),
           ),
           messages: handleFilterMessageAlreadyExist(messages),
           lastMessage: handleGetLastMessage(messages),
@@ -81,8 +81,8 @@ export const handleGetAllConversationByMembers = async (
   }
 };
 export const handleGetAllMessageByConversationID = async (
-  unibertyServices: UnibertyServices,
-  ConversationModel: Model<ConversationType>,
+  unibertyService: UnibertyService,
+  ConversationModel: Model<IConversation>,
   id: string,
 ) => {
   try {
@@ -104,7 +104,7 @@ export const handleGetAllMessageByConversationID = async (
         conversationID: id,
         members: handleConvertUserIDToString(
           await handleGetFullUserDetailByIDList(
-            unibertyServices,
+            unibertyService,
             foundConversation.members,
           ),
         ),
@@ -126,7 +126,7 @@ export const handleGetAllMessageByConversationID = async (
   }
 };
 export const handleGetFullUserDetailByIDList = async (
-  unibertyServices: UnibertyServices,
+  unibertyService: UnibertyService,
   members: MemberTypeArray,
 ) => {
   if (isEmpty(members)) {
@@ -146,7 +146,7 @@ export const handleGetFullUserDetailByIDList = async (
       },
     ) as ObjectType;
 
-    const result: ObjectType = (await unibertyServices.searchListUser(
+    const result: ObjectType = (await unibertyService.searchListUser(
       IDList,
     )) as ObjectType;
     return result.data.data;

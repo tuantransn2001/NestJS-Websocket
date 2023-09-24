@@ -3,16 +3,16 @@ import { Model } from 'mongoose';
 import { healthCheck } from '../common';
 import { STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
 import { MODEL_NAME } from '../ts/enums/common';
-import { HealthCheck } from '../ts/types/common';
 import { RestFullAPI } from '../ts/utils/apiResponse';
 import { errorHandler } from '../ts/utils/errorHandler';
 import { HttpException } from '../ts/utils/http.exception';
+import { IHealthCheck } from './shared/healthCheck.interface';
 
 @Injectable()
-class HealthCheckServices {
+class HealthCheckService {
   constructor(
     @Inject(MODEL_NAME.HEALTH_CHECK)
-    private healthCheckModel: Model<HealthCheck>,
+    private healthCheckModel: Model<IHealthCheck>,
   ) {}
 
   public checkScreen() {
@@ -47,7 +47,7 @@ class HealthCheckServices {
         );
       } else {
         return RestFullAPI.onFail(STATUS_CODE.SERVICE_UNAVAILABLE, {
-          message: STATUS_MESSAGE.SERVICES_UNAVAILABLE,
+          message: STATUS_MESSAGE.SERVICE_UNAVAILABLE,
         } as HttpException);
       }
     } catch (err) {
@@ -56,4 +56,4 @@ class HealthCheckServices {
   }
 }
 
-export { HealthCheckServices };
+export { HealthCheckService };
