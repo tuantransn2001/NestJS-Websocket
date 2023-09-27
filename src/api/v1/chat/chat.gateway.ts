@@ -7,7 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
 import { EVENTS } from './constants/event_constants';
 import { ChatService } from './chat.service';
@@ -22,6 +22,9 @@ import {
   SearchUserByNameDTO,
   EditMessageDTO,
 } from './dto/input';
+import { WsGuard } from '../common/guard/wsGuard';
+import { WsAuthMiddleware } from '../common/middleware/wsAuthMiddleware';
+@UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger();
@@ -41,6 +44,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`⚡️: Client disconnected { id: ${client.id} }`);
   }
   // ? ====================================================
+  // ? ==================== AUTHENTICATE ================== /* =>> Done
+  // ? ====================================================
+  public afterInit(client: Socket) {
+    // * Server will check client is allowed to access the server or not here...
+    // ? If accepted -> continuing...
+    // ! If not accepted -> throw an error back to client
+    this.logger.log(`⚡️: Client is authenticating { id: ${client.id} }`);
+    client.use(WsAuthMiddleware() as any);
+  }
+
+  // ? ====================================================
   // ? ==================== JOIN ROOM ===================== /* =>> DONE
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.JOIN_ROOM)
@@ -53,7 +67,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   // ? ================ SEND ROOM MESSAGE ================= /* =>> DONE
   // ? ====================================================
-
   @SubscribeMessage(EVENTS.CLIENT.SEND_ROOM_MESSAGE)
   public async listenClientSendRoomMessage(
     @MessageBody() clientSendRoomMessDTO: SendRoomMessageDTO,

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { handleConvertUserIDToString } from '../common';
 import { API_PATH, STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
-import { ObjectType, WsAuthMiddlewarePayload } from '../ts/types/common';
+import { ObjectType } from '../ts/types/common';
 import { Axios } from '../ts/utils/apiRequest';
 import { RestFullAPI } from '../ts/utils/apiResponse';
 import { errorHandler } from '../ts/utils/errorHandler';
-import { HttpException } from '../ts/utils/http.exception';
 
 @Injectable()
 class UnibertyService {
@@ -76,20 +75,6 @@ class UnibertyService {
     } catch (err) {
       return errorHandler(err);
     }
-  }
-
-  public async validateToken(payload: WsAuthMiddlewarePayload) {
-    return await Axios.createInstance({
-      baseURL: process.env.UNIBERTY_BASE_URL,
-      token: payload.token,
-    })
-      .get(`${payload.type}/me`)
-      .then(() => RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS))
-      .catch(() =>
-        RestFullAPI.onFail(STATUS_CODE.UNAUTHORIZED, {
-          message: STATUS_MESSAGE.UN_AUTHORIZE,
-        } as HttpException),
-      );
   }
 }
 export { UnibertyService };
