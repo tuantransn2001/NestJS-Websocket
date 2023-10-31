@@ -1,9 +1,9 @@
 export enum API_PATH {
-  get_chat_token = 'api/admin/create-token-api',
-  admin_login = 'api/admin/login',
-  student_login = 'api/admin/student',
-  search_list_user = 'api/admin/search-list-user',
-  search_user_by_name = 'api/admin/search-user-by-name',
+  get_chat_token = 'create-token-api',
+  admin_login = 'login',
+  student_login = 'student',
+  search_list_user = 'search-list-user',
+  search_user_by_name = 'search-user-by-name',
 }
 export enum STATUS_MESSAGE {
   SUCCESS = 'Success',

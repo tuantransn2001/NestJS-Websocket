@@ -7,6 +7,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
+
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
 import { EVENTS } from './constants/event_constants';
@@ -24,6 +25,7 @@ import {
 } from './dto/input';
 import { WsGuard } from '../common/guard/wsGuard';
 import { WsAuthMiddleware } from '../common/middleware/wsAuthMiddleware';
+
 @UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -49,11 +51,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public afterInit(client: Socket) {
     // * Server will check client is allowed to access the server or not here...
     // ? If accepted -> continuing...
-    // ! If not accepted -> throw an error back to client
-    this.logger.log(`⚡️: Client is authenticating { id: ${client.id} }`);
+    // ! If not accepted -> throw an error back to client using server socket emit
+    this.logger.log(`⚡️: Client is authenticating...`);
     client.use(WsAuthMiddleware() as any);
   }
-
   // ? ====================================================
   // ? ==================== JOIN ROOM ===================== /* =>> DONE
   // ? ====================================================
@@ -121,10 +122,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ================ REQUEST ROOM MESSAGE ============== /* =>> DONE
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.REQUEST_ROOM_MESSAGE)
-  public listenClientRequestRoomMessages(
+  public async listenClientRequestRoomMessages(
     @MessageBody() requestRoomMessageDTO: RequestRoomMessageDTO,
   ) {
-    return this.chatService.handleGetRoomMessages(
+    return await this.chatService.handleGetRoomMessages(
       requestRoomMessageDTO,
       this.webSocketServer,
     );
@@ -133,10 +134,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? =============== REQUEST CONTACT LIST =============== /* =>> DONE
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.REQUEST_CONTACT_LIST)
-  public listenClientRequestContactList(
+  public async listenClientRequestContactList(
     @MessageBody() requestContactListDTO: RequestContactListDTO,
   ) {
-    return this.chatService.handleGetContactList(
+    return await this.chatService.handleGetContactList(
       requestContactListDTO,
       this.webSocketServer,
     );
@@ -148,7 +149,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenClientRequestUserList(
     @MessageBody() searchUserByNameDTO: SearchUserByNameDTO,
   ) {
-    return this.chatService.handleSearchUserByName(
+    return await this.chatService.handleSearchUserByName(
       searchUserByNameDTO,
       this.webSocketServer,
     );
@@ -160,9 +161,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenClientEditMessage(
     @MessageBody() editMessageDTO: EditMessageDTO,
   ) {
-    return this.chatService.handleEditMessage(
+    return await this.chatService.handleEditMessage(
       editMessageDTO,
       this.webSocketServer,
     );
+  }
+  // ? ====================================================
+  // ? ===================== BLOCK USER =================== /* =>> DOING
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.BLOCK)
+  public async listenClientBlock() {
+    return this.chatService.handleBlockUser();
+  }
+  // ? ====================================================
+  // ? =================== FORWARD MESSAGE ================ /* =>> DOING
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.BLOCK)
+  public async listenClientForwardMessage() {
+    return this.chatService.handleForwardMessage();
   }
 }

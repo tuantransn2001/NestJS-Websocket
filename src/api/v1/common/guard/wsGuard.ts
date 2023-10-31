@@ -6,8 +6,8 @@ import {
 } from '@nestjs/common';
 import { Socket } from 'socket.io';
 
-import { USER_TYPE } from '../../ts/enums/common';
-import { Axios } from '../../ts/utils';
+import { USER_TYPE } from '../enums/common';
+import { Axios } from '../../utils';
 
 export type WsAuthMiddlewarePayload = {
   token: string;
@@ -22,12 +22,14 @@ export class WsGuard implements CanActivate {
     this.logger.log('WsGuard canActivate is working!!!');
     if (context.getType() !== 'ws') return true;
     const client: Socket = context.switchToWs().getClient<Socket>();
-    WsGuard.validateUser(client);
+    await WsGuard.validateUser(client);
+
     return true;
   }
 
   public static async validateUser(client: Socket) {
     const token: string = client.handshake?.headers?.authorization as string;
+
     return await Axios.createInstance({
       baseURL: process.env.UNIBERTY_BASE_URL,
       token: token,

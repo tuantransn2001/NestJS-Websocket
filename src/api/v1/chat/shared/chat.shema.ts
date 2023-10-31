@@ -38,6 +38,10 @@ export const ConversationType = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+export const PaginationType = z.object({
+  page_size: z.number(),
+  page_number: z.number(),
+});
 
 export const ConversationTypeArray = z.array(ConversationType);
 // ? => JOIN ROOM
@@ -76,11 +80,17 @@ export const EditMessageSchema = DeleteMessageSchema.merge(
 export const DeleteConversationSchema = z.object({ id: StringIDType });
 // ? ==> REQUEST MESSAGE
 export const RequestMessageSchema = z.object({
-  id: StringIDType.optional(),
-  members: MemberTypeArray.optional(),
+  sort: z.object({
+    id: StringIDType.optional(),
+    members: MemberTypeArray.optional(),
+  }),
+  pagination: PaginationType.optional(),
 });
 // ? ==> REQUEST CONTACT LIST
-export const RequestContactListSchema = MemberType;
+export const RequestContactListSchema = z.object({
+  sort: MemberType,
+  pagination: PaginationType.optional(),
+});
 // ? ==> SEARCH USER BY NAME
 export const SearchUserByNameSchema = z.object({
   name: z.string(),

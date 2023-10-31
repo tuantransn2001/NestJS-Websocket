@@ -1,5 +1,5 @@
 import { Connection, Schema } from 'mongoose';
-import { PROVIDER_NAME } from '../../ts/enums/common';
+import { PROVIDER_NAME } from '../enums/common';
 
 export const modelDefineProvider = <M extends string, S extends Schema<any>>(
   ModelName: M,

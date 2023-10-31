@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MODEL_NAME } from '../../ts/enums/common';
+import { MODEL_NAME } from '../../common/enums/common';
 import { v4 as uuidv4 } from 'uuid';
 export const HealthCheck = new mongoose.Schema(
   {

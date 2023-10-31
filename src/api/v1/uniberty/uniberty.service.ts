@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { handleConvertUserIDToString } from '../common';
-import { API_PATH, STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
-import { ObjectType } from '../ts/types/common';
-import { Axios } from '../ts/utils/apiRequest';
-import { RestFullAPI } from '../ts/utils/apiResponse';
-import { errorHandler } from '../ts/utils/errorHandler';
+import {
+  API_PATH,
+  STATUS_CODE,
+  STATUS_MESSAGE,
+} from '../common/enums/api_enums';
+import { ObjectType } from '../common/types/common';
+import { Axios } from '../utils/apiRequest';
+import { RestFullAPI } from '../utils/apiResponse';
+import { errorHandler } from '../utils/errorHandler';
 
 @Injectable()
-class UnibertyService {
-  private static async getAdminAccessToken() {
+export class UnibertyService {
+  private async getAdminAccessToken() {
     try {
       const { status, data } = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
@@ -25,10 +29,10 @@ class UnibertyService {
       return errorHandler(err);
     }
   }
-  private static async getChatToken() {
+  private async getChatToken() {
     try {
       const { data: getAccessTokenResult }: ObjectType =
-        await UnibertyService.getAdminAccessToken();
+        await this.getAdminAccessToken();
       const { status, data } = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
         token: getAccessTokenResult.access_token,
@@ -40,8 +44,7 @@ class UnibertyService {
   }
   public async searchListUser(ids: Record<string, Array<any>>) {
     try {
-      const { data: getChatTokenData }: ObjectType =
-        await UnibertyService.getChatToken();
+      const { data: getChatTokenData }: ObjectType = await this.getChatToken();
 
       const result = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
@@ -59,8 +62,7 @@ class UnibertyService {
   }
   public async searchUserByName(name: string) {
     try {
-      const { data: chatTokenData }: ObjectType =
-        await UnibertyService.getChatToken();
+      const { data: chatTokenData }: ObjectType = await this.getChatToken();
       const searchUserByNameResult = await Axios.createInstance({
         baseURL: process.env.UNIBERTY_BASE_URL,
       }).get(API_PATH.search_user_by_name, {
@@ -77,4 +79,3 @@ class UnibertyService {
     }
   }
 }
-export { UnibertyService };

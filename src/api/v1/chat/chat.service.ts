@@ -2,11 +2,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Server } from 'socket.io';
-import { MODEL_NAME } from '../ts/enums/common';
+import { MODEL_NAME } from '../common/enums/common';
 import { EVENTS } from './constants/event_constants';
-import { RestFullAPI } from '../ts/utils/apiResponse';
-import { STATUS_CODE, STATUS_MESSAGE } from '../ts/enums/api_enums';
-import { errorHandler } from '../ts/utils/errorHandler';
+import { RestFullAPI } from '../utils/apiResponse';
+import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
+import { errorHandler } from '../utils/errorHandler';
 import {
   DeleteConversationDTO,
   DeleteMessageDTO,
@@ -19,17 +19,16 @@ import {
   EditMessageDTO,
 } from './dto/input';
 
-import {
-  handleCheckTwoUserIsOne,
-  handleGetLastMessage,
-  handleGetUniqObjInArr,
-} from '../common';
 import { map as asyncMap } from 'awaity';
 import { UnibertyService } from '../uniberty/uniberty.service';
 import {
   handleGetAllMessageByConversationID,
   handleGetFullUserDetailByIDList,
   handleGetAllConversationByMembers,
+  handleGetPagination,
+  handleCheckTwoUserIsOne,
+  handleGetLastMessage,
+  handleGetUniqObjInArr,
 } from './helper';
 import {
   DeleteConversationSchema,
@@ -47,7 +46,7 @@ import {
   MemberType,
   MemberTypeArray,
 } from './shared/chat.interface';
-import { handleErrorNotFound } from '../ts/utils';
+import { handleErrorNotFound } from '../utils';
 
 @Injectable()
 export class ChatService {
@@ -83,14 +82,14 @@ export class ChatService {
   }
   // ? ====================================================
   // ? CLIENT SEND ROOM MESSAGE
-  // ? Case they didn't chat each other before
+  // ? Case they did chat each other before
   // ? ====================================================
   public async handleClientSendRoomMessage<
     D extends SendRoomMessageDTO,
     S extends Server,
   >(sendRoomMessageDTO: D, server: S) {
     this.logger.log(
-      `CLIENT SEND ROOM MESSAGE - Case they didn't chat each other before`,
+      `CLIENT SEND ROOM MESSAGE - Case they did chat each other before`,
       sendRoomMessageDTO,
     );
     try {
@@ -115,7 +114,7 @@ export class ChatService {
             responseConversation,
           );
           this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they didn't chat each other before - Successfully!!!`,
+            `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Successfully!!!`,
             responseConversation,
           );
         })
@@ -125,7 +124,7 @@ export class ChatService {
             errorHandler(err),
           );
           this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they didn't chat each other before - Fail!!!`,
+            `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Fail!!!`,
             errorHandler(err),
           );
         });
@@ -135,21 +134,21 @@ export class ChatService {
         errorHandler(err),
       );
       this.logger.log(
-        `CLIENT SEND ROOM MESSAGE - Case they didn't chat each other before - Bad Request!!!`,
+        `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Bad Request!!!`,
         errorHandler(err),
       );
     }
   }
   // ? ====================================================
   // ? CLIENT SEND FIRST MESSAGE
-  // ? Case they did chatted each other before
+  // ? Case they didn't chatted each other before
   // ? ====================================================
   public async handleClientSendFirstRoomMessage<
     D extends SendRoomMessageDTO,
     S extends Server,
   >(sendRoomMessageDTO: D, server: S) {
     this.logger.log(
-      `CLIENT SEND ROOM MESSAGE - Case they did chatted each other before`,
+      `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before`,
       sendRoomMessageDTO,
     );
     try {
@@ -177,7 +176,7 @@ export class ChatService {
             responseConversation,
           );
           this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they did chatted each other before - Successfully!!!`,
+            `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Successfully!!!`,
             responseConversation,
           );
         })
@@ -187,7 +186,7 @@ export class ChatService {
             errorHandler(err),
           );
           this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they did chatted each other before - Fail!!!`,
+            `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Fail!!!`,
             errorHandler(err),
           );
         });
@@ -197,7 +196,7 @@ export class ChatService {
         errorHandler(err),
       );
       this.logger.log(
-        `CLIENT SEND ROOM MESSAGE - Case they did chatted each other before - Bad Request!!!`,
+        `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Bad Request!!!`,
         errorHandler(err),
       );
     }
@@ -374,18 +373,59 @@ export class ChatService {
     this.logger.log(`GET CONTACT LIST`, requestContactListDTO);
     try {
       const data = RequestContactListSchema.parse(requestContactListDTO);
-      const { id, type } = data;
-      const foundUserContactList = await this.conversationModel.find(
-        {
-          members: { $elemMatch: { id, type } },
-          isDelete: false,
-        },
-        {
-          isDelete: 0,
-          _id: 0,
-          'members._id': 0,
-        },
+      const { id, type } = data.sort;
+
+      const { _skip, _limit } = handleGetPagination(data.pagination);
+
+      console.log('pag:::', { _skip, _limit });
+
+      console.log(
+        'data:::',
+        await this.conversationModel.find(
+          {
+            members: { $elemMatch: { id, type } },
+            isDelete: false,
+          },
+          {
+            isDelete: 0,
+            _id: 0,
+            'members._id': 0,
+          },
+        ),
       );
+
+      console.log(
+        'data pag:::',
+        await this.conversationModel
+          .find(
+            {
+              members: { $elemMatch: { id, type } },
+              isDelete: false,
+            },
+            {
+              isDelete: 0,
+              _id: 0,
+              'members._id': 0,
+            },
+          )
+          .skip(_skip)
+          .limit(_limit),
+      );
+
+      const foundUserContactList = await this.conversationModel
+        .find(
+          {
+            members: { $elemMatch: { id, type } },
+            isDelete: false,
+          },
+          {
+            isDelete: 0,
+            _id: 0,
+            'members._id': 0,
+          },
+        )
+        .skip(_skip)
+        .limit(_limit);
 
       const arrUniqMemberDetail = handleGetUniqObjInArr(
         foundUserContactList
@@ -459,7 +499,7 @@ export class ChatService {
     }
   }
   // ? ====================================================
-  // ? Get Room Message
+  // ? GET ROOM MESSAGE
   // ? ====================================================
   public async handleGetRoomMessages<
     D extends RequestRoomMessageDTO,
@@ -468,7 +508,8 @@ export class ChatService {
     this.logger.log(`CLIENT GET ROOM MESSAGE`, requestRoomMessageDTO);
     try {
       const data = RequestMessageSchema.parse(requestRoomMessageDTO);
-      const { id, members } = data;
+      const { id, members } = data.sort;
+
       const isGetByID = members === undefined;
       if (isGetByID) {
         // ? Case choose from contact item
@@ -531,5 +572,17 @@ export class ChatService {
         errorHandler(err),
       );
     }
+  }
+  // ? ====================================================
+  // ? BLOCK
+  // ? ====================================================
+  public handleBlockUser() {
+    this.logger.log(`Block user`);
+  }
+  // ? ====================================================
+  // ? FORWARD
+  // ? ====================================================
+  public handleForwardMessage() {
+    this.logger.log(`Forward message`);
   }
 }

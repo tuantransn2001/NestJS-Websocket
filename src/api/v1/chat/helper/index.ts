@@ -1,22 +1,64 @@
 import { Model } from 'mongoose';
-import {
-  handleConvertUserIDToString,
-  handleFilterMessageAlreadyExist,
-  handleGetLastMessage,
-  isEmpty,
-  isSingleChat,
-} from '../../common';
-import { STATUS_CODE, STATUS_MESSAGE } from '../../ts/enums/api_enums';
-import { errorHandler, HttpException, RestFullAPI } from '../../ts/utils';
+import { handleConvertUserIDToString, isEmpty } from '../../common';
+import { STATUS_CODE, STATUS_MESSAGE } from '../../common/enums/api_enums';
+import { errorHandler, HttpException, RestFullAPI } from '../../utils';
 import { UnibertyService } from '../../uniberty/uniberty.service';
 import {
   ConversationTypeArray,
   IConversation,
   MemberType,
   MemberTypeArray,
+  MessageType,
+  MessageTypeArray,
+  PaginationType,
 } from '../shared/chat.interface';
 import { async as asyncFilter } from 'awaity';
-import { ObjectType } from '../../ts/types/common';
+import { ObjectType } from '../../common/types/common';
+
+export const handleGetUniqObjInArr = (arr: any[], properties: string[]) => [
+  ...new Map(
+    arr.map((v) => [JSON.stringify(properties.map((k) => v[k])), v]),
+  ).values(),
+];
+
+export const handleCheckTwoUserIsOne = (
+  sender: MemberType,
+  compareUser: MemberType,
+) => {
+  return sender.id === compareUser.id && sender.type === compareUser.type;
+};
+
+export const isSingleChat = (member: MemberType[]) => member.length <= 2;
+
+export const handleFilterMessageAlreadyExist = (messages: MemberType[]) => {
+  return isEmpty(messages)
+    ? []
+    : messages.reduce(
+        (
+          messList,
+          { content, sender, isDelete, id, createdAt, updatedAt }: MessageType,
+        ) => {
+          !isDelete &&
+            messList.push({
+              id,
+              content,
+              sender,
+              createdAt,
+              updatedAt,
+            });
+
+          return messList;
+        },
+        [],
+      );
+};
+
+export const handleGetLastMessage = (messages: MessageTypeArray) => {
+  const { content, updatedAt: timeMessage } = messages[messages.length - 1];
+
+  return { content, timeMessage };
+};
+
 export const handleGetAllConversationByMembers = async (
   unibertyService: UnibertyService,
   conversationModel: Model<IConversation>,
@@ -151,4 +193,12 @@ export const handleGetFullUserDetailByIDList = async (
     )) as ObjectType;
     return result.data.data;
   }
+};
+export const handleGetPagination = (payload: PaginationType) => {
+  if (!payload) return { _skip: 0, _limit: 10 };
+
+  const _skip = (payload.page_number - 1) * payload.page_size;
+  const _limit = payload.page_size;
+
+  return { _skip, _limit };
 };

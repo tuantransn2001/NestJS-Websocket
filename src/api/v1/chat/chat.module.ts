@@ -3,7 +3,7 @@ import { DatabaseModule } from '../database/database.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { modelDefineProvider } from '../common/provider';
-import { MODEL_NAME } from '../ts/enums/common';
+import { MODEL_NAME } from '../common/enums/common';
 import { Conversation } from './entities/conversation.entity';
 import { UnibertyService } from '../uniberty/uniberty.service';
 
