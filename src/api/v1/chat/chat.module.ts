@@ -3,17 +3,23 @@ import { DatabaseModule } from '../database/database.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { modelDefineProvider } from '../common/provider';
-import { MODEL_NAME } from '../common/enums/common';
+import { ModelName } from '../common/enums/common';
 import { Conversation } from './entities/conversation.entity';
-import { UnibertyService } from '../uniberty/uniberty.service';
+import { UserService } from '../user/user.service';
+import { MessageService } from './message.service';
+import { Notification } from '../notification/entities/notification.entity';
+import { NotificationService } from '../notification/notification.service';
 
 @Module({
   imports: [DatabaseModule],
   providers: [
-    ...modelDefineProvider(MODEL_NAME.CONVERSATION, Conversation),
+    ...modelDefineProvider(ModelName.CONVERSATION, Conversation),
+    ...modelDefineProvider(ModelName.NOTIFICATION, Notification),
     ChatGateway,
     ChatService,
-    UnibertyService,
+    UserService,
+    MessageService,
+    NotificationService,
   ],
 })
 class ChatModule {}

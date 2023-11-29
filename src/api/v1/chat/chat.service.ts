@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Server } from 'socket.io';
-import { MODEL_NAME } from '../common/enums/common';
+import { ModelName } from '../common/enums/common';
 import { EVENTS } from './constants/event_constants';
 import { RestFullAPI } from '../utils/apiResponse';
 import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
@@ -20,11 +20,7 @@ import {
 } from './dto/input';
 
 import { map as asyncMap } from 'awaity';
-import { UnibertyService } from '../uniberty/uniberty.service';
 import {
-  handleGetAllMessageByConversationID,
-  handleGetFullUserDetailByIDList,
-  handleGetAllConversationByMembers,
   handleGetPagination,
   handleCheckTwoUserIsOne,
   handleGetLastMessage,
@@ -47,14 +43,17 @@ import {
   MemberTypeArray,
 } from './shared/chat.interface';
 import { handleErrorNotFound } from '../utils';
+import { UserService } from '../user/user.service';
+import { MessageService } from './message.service';
 
 @Injectable()
 export class ChatService {
   private readonly logger = new Logger();
   constructor(
-    @Inject(MODEL_NAME.CONVERSATION)
-    private conversationModel: Model<IConversation>,
-    private unibertyService: UnibertyService,
+    @Inject(ModelName.CONVERSATION)
+    private readonly conversationModel: Model<IConversation>,
+    private readonly userService: UserService,
+    private readonly messageService: MessageService,
   ) {}
 
   // ? ====================================================
@@ -99,13 +98,14 @@ export class ChatService {
         .findOneAndUpdate(
           { id: conversationID },
           {
-            $push: { messages: { ...message, id: uuidv4() } },
+            $push: {
+              messages: { ...message, id: uuidv4() },
+            },
           },
         )
         .then(async () => {
           const responseConversation =
-            await handleGetAllMessageByConversationID(
-              this.unibertyService,
+            await this.messageService.handleGetAllMessageByConversationID(
               this.conversationModel,
               conversationID,
             );
@@ -160,13 +160,14 @@ export class ChatService {
         members,
         messages: [message],
         name: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       await this.conversationModel
         .create(newConversationDocument)
         .then(async (response) => {
           const responseConversation =
-            await handleGetAllMessageByConversationID(
-              this.unibertyService,
+            await this.messageService.handleGetAllMessageByConversationID(
               this.conversationModel,
               conversationID,
             );
@@ -271,7 +272,7 @@ export class ChatService {
 
           server.sockets.emit(
             EVENTS.SERVER.EDIT_MESSAGE_RESULT,
-            RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS),
+            RestFullAPI.onSuccess(STATUS_CODE.ACCEPTED, STATUS_MESSAGE.SUCCESS),
           );
           this.logger.log(`EDIT MESSAGE - Successfully!!!}`);
         } else {
@@ -377,41 +378,6 @@ export class ChatService {
 
       const { _skip, _limit } = handleGetPagination(data.pagination);
 
-      console.log('pag:::', { _skip, _limit });
-
-      console.log(
-        'data:::',
-        await this.conversationModel.find(
-          {
-            members: { $elemMatch: { id, type } },
-            isDelete: false,
-          },
-          {
-            isDelete: 0,
-            _id: 0,
-            'members._id': 0,
-          },
-        ),
-      );
-
-      console.log(
-        'data pag:::',
-        await this.conversationModel
-          .find(
-            {
-              members: { $elemMatch: { id, type } },
-              isDelete: false,
-            },
-            {
-              isDelete: 0,
-              _id: 0,
-              'members._id': 0,
-            },
-          )
-          .skip(_skip)
-          .limit(_limit),
-      );
-
       const foundUserContactList = await this.conversationModel
         .find(
           {
@@ -435,10 +401,11 @@ export class ChatService {
           .flat(1),
         ['id', 'type'],
       );
-      const arrUniqMemberFullDetail = await handleGetFullUserDetailByIDList(
-        this.unibertyService,
-        arrUniqMemberDetail,
-      );
+
+      const arrUniqMemberFullDetail =
+        await this.messageService.handleGetFullUserDetailByIDList(
+          arrUniqMemberDetail,
+        );
 
       const handleGetMemberDetailByIdAndType = (members: MemberTypeArray) => {
         return members.reduce((result, member) => {
@@ -513,32 +480,41 @@ export class ChatService {
       const isGetByID = members === undefined;
       if (isGetByID) {
         // ? Case choose from contact item
-        const responseMessages = await handleGetAllMessageByConversationID(
-          this.unibertyService,
-          this.conversationModel,
-          id,
+        const responseMessages =
+          await this.messageService.handleGetAllMessageByConversationID(
+            this.conversationModel,
+            id,
+          );
+
+        server.sockets.emit(
+          EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+          responseMessages,
         );
-        server.emit(EVENTS.SERVER.RECEIVE_ROOM_MESSAGE, responseMessages);
         this.logger.log(
           `CLIENT GET ROOM MESSAGE - GetByID - Successfully!!!`,
           responseMessages,
         );
       } else {
         // ? Case choose from search item
-
-        const responseMessages = await handleGetAllConversationByMembers(
-          this.unibertyService,
-          this.conversationModel,
-          members,
+        const responseMessages =
+          await this.messageService.handleGetAllConversationByMembers(
+            this.conversationModel,
+            members,
+          );
+        server.sockets.emit(
+          EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+          responseMessages,
         );
-        server.emit(EVENTS.SERVER.RECEIVE_ROOM_MESSAGE, responseMessages);
         this.logger.log(
           `CLIENT GET ROOM MESSAGE - GetByMembers - Successfully!!!`,
           responseMessages,
         );
       }
     } catch (err) {
-      server.emit(EVENTS.SERVER.RECEIVE_ROOM_MESSAGE, errorHandler(err));
+      server.sockets.emit(
+        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+        errorHandler(err),
+      );
       this.logger.log(
         `CLIENT GET ROOM MESSAGE - Bad Request!!!`,
         errorHandler(err),
@@ -557,9 +533,12 @@ export class ChatService {
       const data = SearchUserByNameSchema.parse(searchUserByNameDTO);
       const { name } = data;
 
-      const userListResponse = await this.unibertyService.searchUserByName(
-        name,
-      );
+      const userListResponse = await this.userService.searchUserByName({
+        offset: 1,
+        limit: 10,
+        name: name,
+        idsToSkip: 0,
+      });
       server.emit(EVENTS.SERVER.RECEIVE_USER_LIST, userListResponse);
       this.logger.log(
         `SEARCH USER BY NAME - Successfully!!!`,

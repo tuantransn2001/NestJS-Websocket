@@ -20,33 +20,34 @@ import {
   DeleteConversationDTO,
   RequestRoomMessageDTO,
   RequestContactListDTO,
-  SearchUserByNameDTO,
   EditMessageDTO,
 } from './dto/input';
 import { WsGuard } from '../common/guard/wsGuard';
 import { WsAuthMiddleware } from '../common/middleware/wsAuthMiddleware';
 
+// @UseGuards(WsGuard)
 @UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger();
   @WebSocketServer()
   webSocketServer: SocketServer;
+
   constructor(private chatService: ChatService) {}
   // ? ====================================================
-  // ? ===================== CONNECT ====================== /* =>> Done
+  // ? ===================== CONNECT ====================== /* =>> DONE
   // ? ====================================================
   public async handleConnection(@ConnectedSocket() client: Socket) {
     this.logger.log(`⚡: Client is connected { id: ${client.id} }`);
   }
   // ? ====================================================
-  // ? ==================== DISCONNECT ==================== /* =>> Done
+  // ? ==================== DISCONNECT ==================== /* =>> DONE
   // ? ====================================================
   public handleDisconnect(@ConnectedSocket() client: Socket) {
     this.logger.log(`⚡️: Client disconnected { id: ${client.id} }`);
   }
   // ? ====================================================
-  // ? ==================== AUTHENTICATE ================== /* =>> Done
+  // ? ==================== AUTHENTICATE ================== /* =>> DONE
   // ? ====================================================
   public afterInit(client: Socket) {
     // * Server will check client is allowed to access the server or not here...
@@ -88,7 +89,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
   // ? ====================================================
-  // ? ===================== TYPING ======================= /* =>> DONE
+  // ? ===================== TYPING ======================= /* =>> Checking... -> Rebuild...
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.TYPING)
   public async listenUserTyping(@MessageBody() typingDTO: TypingDTO) {
@@ -139,18 +140,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     return await this.chatService.handleGetContactList(
       requestContactListDTO,
-      this.webSocketServer,
-    );
-  }
-  // ? ====================================================
-  // ? ==================== SEARCH USER =================== /* =>> DONE
-  // ? ====================================================
-  @SubscribeMessage(EVENTS.CLIENT.REQUEST_USER_LIST)
-  public async listenClientRequestUserList(
-    @MessageBody() searchUserByNameDTO: SearchUserByNameDTO,
-  ) {
-    return await this.chatService.handleSearchUserByName(
-      searchUserByNameDTO,
       this.webSocketServer,
     );
   }

@@ -1,14 +1,17 @@
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  PaginationType,
+  StringType,
+  UUIDType,
+} from '../../common/shared/common.schema';
 // ? Variable Declarations
-export const StringIDType = z.string();
-export const UUIDType = z.string().uuid();
 export const MemberType = z.object({
-  id: StringIDType,
+  id: StringType,
   type: z.string(),
 });
 export const MessageType = z.object({
-  id: StringIDType,
+  id: StringType,
   isDelete: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -37,10 +40,6 @@ export const ConversationType = z.object({
   isDelete: z.boolean(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
-export const PaginationType = z.object({
-  page_size: z.number(),
-  page_number: z.number(),
 });
 
 export const ConversationTypeArray = z.array(ConversationType);
@@ -77,11 +76,11 @@ export const EditMessageSchema = DeleteMessageSchema.merge(
   }),
 );
 // ? ==> DELETE CONVERSATION
-export const DeleteConversationSchema = z.object({ id: StringIDType });
+export const DeleteConversationSchema = z.object({ id: StringType });
 // ? ==> REQUEST MESSAGE
 export const RequestMessageSchema = z.object({
   sort: z.object({
-    id: StringIDType.optional(),
+    id: StringType.optional(),
     members: MemberTypeArray.optional(),
   }),
   pagination: PaginationType.optional(),
@@ -93,5 +92,7 @@ export const RequestContactListSchema = z.object({
 });
 // ? ==> SEARCH USER BY NAME
 export const SearchUserByNameSchema = z.object({
-  name: z.string(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+  name: z.string().optional(),
 });
