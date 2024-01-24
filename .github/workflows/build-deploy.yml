@@ -15,4 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag messenger-api
+        run: docker build . --file Dockerfile --tag nest-websocket-api
