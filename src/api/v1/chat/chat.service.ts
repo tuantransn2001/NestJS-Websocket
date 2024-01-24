@@ -18,7 +18,6 @@ import {
   JoinRoomDTO,
   EditMessageDTO,
 } from './dto/input';
-
 import { map as asyncMap } from 'awaity';
 import {
   handleGetPagination,
@@ -65,8 +64,8 @@ export class ChatService {
   ) {
     this.logger.log('CLIENT JOIN ROOM', clientJoinRoomDTO);
     try {
-      const data = JoinRoomSchema.parse(clientJoinRoomDTO);
-      server.sockets.socketsJoin(data.roomID);
+      const { roomID } = JoinRoomSchema.parse(clientJoinRoomDTO);
+      server.sockets.socketsJoin(roomID);
       server.sockets.emit(
         EVENTS.SERVER.JOINED_ROOM,
         RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS, {
@@ -83,18 +82,11 @@ export class ChatService {
   // ? CLIENT SEND ROOM MESSAGE
   // ? Case they did chat each other before
   // ? ====================================================
-  public async handleClientSendRoomMessage<
-    D extends SendRoomMessageDTO,
-    S extends Server,
-  >(sendRoomMessageDTO: D, server: S) {
-    this.logger.log(
-      `CLIENT SEND ROOM MESSAGE - Case they did chat each other before`,
-      sendRoomMessageDTO,
-    );
+  public async handleClientSendRoomMessage(payload: SendRoomMessageDTO) {
     try {
-      const data = SendRoomMessageSchema.parse(sendRoomMessageDTO);
-      const { conversationID, message } = data;
-      await this.conversationModel
+      const { conversationID, message } = SendRoomMessageSchema.parse(payload);
+
+      const response = await this.conversationModel
         .findOneAndUpdate(
           { id: conversationID },
           {
@@ -109,52 +101,29 @@ export class ChatService {
               this.conversationModel,
               conversationID,
             );
-          server.sockets.emit(
-            EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-            responseConversation,
-          );
-          this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Successfully!!!`,
+
+          return RestFullAPI.onSuccess(
+            STATUS_CODE.OK,
+            STATUS_MESSAGE.SUCCESS,
             responseConversation,
           );
         })
-        .catch((err) => {
-          server.sockets.emit(
-            EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-            errorHandler(err),
-          );
-          this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Fail!!!`,
-            errorHandler(err),
-          );
-        });
+        .catch(errorHandler);
+
+      return response;
     } catch (err) {
-      server.sockets.emit(
-        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-        errorHandler(err),
-      );
-      this.logger.log(
-        `CLIENT SEND ROOM MESSAGE - Case they did chat each other before - Bad Request!!!`,
-        errorHandler(err),
-      );
+      // ? Zod Error
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? CLIENT SEND FIRST MESSAGE
   // ? Case they didn't chatted each other before
   // ? ====================================================
-  public async handleClientSendFirstRoomMessage<
-    D extends SendRoomMessageDTO,
-    S extends Server,
-  >(sendRoomMessageDTO: D, server: S) {
-    this.logger.log(
-      `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before`,
-      sendRoomMessageDTO,
-    );
+  public async handleClientSendFirstRoomMessage(payload: SendRoomMessageDTO) {
     try {
-      const data = SendRoomMessageSchema.parse(sendRoomMessageDTO);
+      const { members, message } = SendRoomMessageSchema.parse(payload);
       const conversationID = uuidv4();
-      const { members, message } = data;
       const newConversationDocument: IConversation = {
         id: conversationID,
         members,
@@ -163,88 +132,53 @@ export class ChatService {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      await this.conversationModel
+      const response = await this.conversationModel
         .create(newConversationDocument)
         .then(async (response) => {
           const responseConversation =
             await this.messageService.handleGetAllMessageByConversationID(
               this.conversationModel,
-              conversationID,
+              response.id,
             );
-          server.sockets.socketsJoin(response.id);
-          server.sockets.emit(
-            EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-            responseConversation,
-          );
-          this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Successfully!!!`,
+          return RestFullAPI.onSuccess(
+            STATUS_CODE.OK,
+            STATUS_MESSAGE.SUCCESS,
             responseConversation,
           );
         })
-        .catch((err) => {
-          server.sockets.emit(
-            EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-            errorHandler(err),
-          );
-          this.logger.log(
-            `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Fail!!!`,
-            errorHandler(err),
-          );
-        });
+        .catch(errorHandler);
+
+      return response;
     } catch (err) {
-      server.sockets.emit(
-        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-        errorHandler(err),
-      );
-      this.logger.log(
-        `CLIENT SEND ROOM MESSAGE - Case they didn't chatted each other before - Bad Request!!!`,
-        errorHandler(err),
-      );
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? DELETE CONVERSATION
   // ? ====================================================
-  public async handleDeleteConversation<
-    D extends DeleteConversationDTO,
-    S extends Server,
-  >(deleteMessageDTO: D, server: S) {
-    this.logger.log(`DELETE CONVERSATION`, deleteMessageDTO);
+  public async handleDeleteConversation(payload: DeleteConversationDTO) {
     try {
-      const data = DeleteConversationSchema.parse(deleteMessageDTO);
-      const { id } = data;
-      await this.conversationModel
+      const { id } = DeleteConversationSchema.parse(payload);
+
+      const response = await this.conversationModel
         .updateOne({ id }, { $set: { isDelete: true } })
-        .then(() => {
-          server.sockets.emit(
-            EVENTS.SERVER.DELETE_CONVERSATION_RESULT,
-            RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS),
-          );
-        })
-        .catch((err) => {
-          server.sockets.emit(
-            EVENTS.SERVER.DELETE_CONVERSATION_RESULT,
-            errorHandler(err),
-          );
-        });
+        .then(() =>
+          RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS),
+        )
+        .catch(errorHandler);
+
+      return response;
     } catch (err) {
-      server.sockets.emit(
-        EVENTS.SERVER.DELETE_CONVERSATION_RESULT,
-        errorHandler(err),
-      );
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? EDIT MESSAGE
   // ? ====================================================
-  public async handleEditMessage<D extends EditMessageDTO, S extends Server>(
-    editMessageDTO: D,
-    server: S,
-  ) {
-    this.logger.log(`EDIT MESSAGE`, editMessageDTO);
+  public async handleEditMessage(payload: EditMessageDTO) {
     try {
-      const data = EditMessageSchema.parse(editMessageDTO);
-      const { messageID, conversationID, dto } = data;
+      const { messageID, conversationID, dto } =
+        EditMessageSchema.parse(payload);
 
       const foundConversation = await this.conversationModel.findOne({
         id: conversationID,
@@ -270,113 +204,74 @@ export class ChatService {
 
           await foundConversation.save();
 
-          server.sockets.emit(
-            EVENTS.SERVER.EDIT_MESSAGE_RESULT,
-            RestFullAPI.onSuccess(STATUS_CODE.ACCEPTED, STATUS_MESSAGE.SUCCESS),
+          return RestFullAPI.onSuccess(
+            STATUS_CODE.ACCEPTED,
+            STATUS_MESSAGE.SUCCESS,
           );
-          this.logger.log(`EDIT MESSAGE - Successfully!!!}`);
         } else {
           const messageError = `messageID: ${messageID} ${STATUS_MESSAGE.NOT_FOUND}`;
-          server.sockets.emit(
-            EVENTS.SERVER.EDIT_MESSAGE_RESULT,
-            handleErrorNotFound(messageError),
-          );
-          this.logger.log(`EDIT MESSAGE - Fail!!! - ${messageError}`);
+          return handleErrorNotFound(messageError);
         }
       } else {
         const messageError = `conversationID: ${conversationID} ${STATUS_MESSAGE.NOT_FOUND}`;
-        server.sockets.emit(
-          EVENTS.SERVER.EDIT_MESSAGE_RESULT,
-          handleErrorNotFound(messageError),
-        );
-        this.logger.log(`EDIT MESSAGE - Fail!!! - ${messageError}`);
+
+        return handleErrorNotFound(messageError);
       }
     } catch (err) {
-      server.sockets.emit(EVENTS.SERVER.EDIT_MESSAGE_RESULT, errorHandler(err));
-      this.logger.log(`EDIT MESSAGE - Bad Request!!!`, errorHandler(err));
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? DELETE CONVERSATION
   // ? ====================================================
-  public async handleDeleteMessageConversation<
-    D extends DeleteMessageDTO,
-    S extends Server,
-  >(deleteMessageDTO: D, server: S) {
-    this.logger.log(`CLIENT DELETE ROOM MESSAGE`, deleteMessageDTO);
+  public async handleDeleteMessageConversation(payload: DeleteMessageDTO) {
     try {
-      const data = DeleteMessageSchema.parse(deleteMessageDTO);
-      const { conversationID, messageID } = data;
-      await this.conversationModel
+      const { conversationID, messageID } = DeleteMessageSchema.parse(payload);
+
+      const response = await this.conversationModel
         .updateOne(
           { id: conversationID, 'messages.id': messageID },
           { $set: { 'messages.$.isDelete': true } },
         )
         .then(() => {
-          server.sockets.emit(
-            EVENTS.SERVER.DELETE_MESSAGE_RESULT,
-            RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS),
+          return RestFullAPI.onSuccess(
+            STATUS_CODE.CREATED,
+            STATUS_MESSAGE.SUCCESS,
           );
-          this.logger.log(`CLIENT DELETE ROOM MESSAGE - Successfully!!!`);
         })
         .catch((err) => {
-          server.sockets.emit(
-            EVENTS.SERVER.DELETE_MESSAGE_RESULT,
-            errorHandler(err),
-          );
-          this.logger.log(
-            `CLIENT DELETE ROOM MESSAGE - Fail!!!`,
-            errorHandler(err),
-          );
+          return errorHandler(err);
         });
+
+      return response;
     } catch (err) {
-      server.sockets.emit(
-        EVENTS.SERVER.DELETE_MESSAGE_RESULT,
-        errorHandler(err),
-      );
-      this.logger.log(
-        `CLIENT DELETE ROOM MESSAGE - Bad Request!!!`,
-        errorHandler(err),
-      );
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? TYPING
   // ? ====================================================
-  public async handleTyping<D extends TypingDTO, S extends Server>(
-    typingDTO: D,
-    server: S,
-  ) {
-    this.logger.log(`CLIENT TYPING`, typingDTO);
+  public async handleTyping(payload: TypingDTO) {
     try {
-      const data = TypingSchema.parse(typingDTO);
-      const { sender, isTyping } = data;
-      server.sockets.emit(
-        EVENTS.SERVER.IS_TYPING,
-        RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS, {
-          sender,
-          isTyping,
-        }),
-      );
-      this.logger.log(`CLIENT TYPING - Successfully!!!`);
+      const { sender, isTyping } = TypingSchema.parse(payload);
+
+      return RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS, {
+        sender,
+        isTyping,
+      });
     } catch (err) {
-      server.sockets.emit(EVENTS.SERVER.IS_TYPING, errorHandler(err));
-      this.logger.log(`CLIENT TYPING - Bad Request!!!`, errorHandler(err));
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? GET CONTACT LIST
   // ? ====================================================
-  public async handleGetContactList<
-    D extends RequestContactListDTO,
-    S extends Server,
-  >(requestContactListDTO: D, server: S) {
-    this.logger.log(`GET CONTACT LIST`, requestContactListDTO);
+  public async handleGetContactList(payload: RequestContactListDTO) {
     try {
-      const data = RequestContactListSchema.parse(requestContactListDTO);
-      const { id, type } = data.sort;
+      const { sort, pagination } = RequestContactListSchema.parse(payload);
+      const { id, type } = sort;
 
-      const { _skip, _limit } = handleGetPagination(data.pagination);
+      const { _skip, _limit } = handleGetPagination(pagination);
 
       const foundUserContactList = await this.conversationModel
         .find(
@@ -394,11 +289,7 @@ export class ChatService {
         .limit(_limit);
 
       const arrUniqMemberDetail = handleGetUniqObjInArr(
-        foundUserContactList
-          .map(({ members }) => {
-            return [...members];
-          })
-          .flat(1),
+        foundUserContactList.map(({ members }) => members).flat(1),
         ['id', 'type'],
       );
 
@@ -447,35 +338,22 @@ export class ChatService {
           };
         },
       );
-
-      server.emit(
-        EVENTS.SERVER.RECEIVE_CONTACT_LIST,
-        RestFullAPI.onSuccess(
-          STATUS_CODE.OK,
-          STATUS_MESSAGE.SUCCESS,
-          responseContactList,
-        ),
-      );
-      this.logger.log(
-        `GET CONTACT LIST - Successfully!!!`,
+      return RestFullAPI.onSuccess(
+        STATUS_CODE.OK,
+        STATUS_MESSAGE.SUCCESS,
         responseContactList,
       );
     } catch (err) {
-      server.emit(EVENTS.SERVER.RECEIVE_CONTACT_LIST, errorHandler(err));
-      this.logger.log(`GET CONTACT LIST - Bad Request!!!`, errorHandler(err));
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? GET ROOM MESSAGE
   // ? ====================================================
-  public async handleGetRoomMessages<
-    D extends RequestRoomMessageDTO,
-    S extends Server,
-  >(requestRoomMessageDTO: D, server: S) {
-    this.logger.log(`CLIENT GET ROOM MESSAGE`, requestRoomMessageDTO);
+  public async handleGetRoomMessages(payload: RequestRoomMessageDTO) {
     try {
-      const data = RequestMessageSchema.parse(requestRoomMessageDTO);
-      const { id, members } = data.sort;
+      const { sort } = RequestMessageSchema.parse(payload);
+      const { id, members } = sort;
 
       const isGetByID = members === undefined;
       if (isGetByID) {
@@ -485,13 +363,9 @@ export class ChatService {
             this.conversationModel,
             id,
           );
-
-        server.sockets.emit(
-          EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-          responseMessages,
-        );
-        this.logger.log(
-          `CLIENT GET ROOM MESSAGE - GetByID - Successfully!!!`,
+        return RestFullAPI.onSuccess(
+          STATUS_CODE.OK,
+          STATUS_MESSAGE.SUCCESS,
           responseMessages,
         );
       } else {
@@ -501,37 +375,22 @@ export class ChatService {
             this.conversationModel,
             members,
           );
-        server.sockets.emit(
-          EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-          responseMessages,
-        );
-        this.logger.log(
-          `CLIENT GET ROOM MESSAGE - GetByMembers - Successfully!!!`,
+        return RestFullAPI.onSuccess(
+          STATUS_CODE.OK,
+          STATUS_MESSAGE.SUCCESS,
           responseMessages,
         );
       }
     } catch (err) {
-      server.sockets.emit(
-        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
-        errorHandler(err),
-      );
-      this.logger.log(
-        `CLIENT GET ROOM MESSAGE - Bad Request!!!`,
-        errorHandler(err),
-      );
+      return errorHandler(err);
     }
   }
   // ? ====================================================
   // ? SEARCH USER BY NAME
   // ? ====================================================
-  public async handleSearchUserByName<
-    D extends SearchUserByNameDTO,
-    S extends Server,
-  >(searchUserByNameDTO: D, server: S) {
-    this.logger.log(`SEARCH USER BY NAME`, searchUserByNameDTO);
+  public async handleSearchUserByName(payload: SearchUserByNameDTO) {
     try {
-      const data = SearchUserByNameSchema.parse(searchUserByNameDTO);
-      const { name } = data;
+      const { name } = SearchUserByNameSchema.parse(payload);
 
       const userListResponse = await this.userService.searchUserByName({
         offset: 1,
@@ -539,17 +398,13 @@ export class ChatService {
         name: name,
         idsToSkip: 0,
       });
-      server.emit(EVENTS.SERVER.RECEIVE_USER_LIST, userListResponse);
-      this.logger.log(
-        `SEARCH USER BY NAME - Successfully!!!`,
+      return RestFullAPI.onSuccess(
+        STATUS_CODE.OK,
+        STATUS_MESSAGE.SUCCESS,
         userListResponse,
       );
     } catch (err) {
-      server.emit(EVENTS.SERVER.RECEIVE_USER_LIST, errorHandler(err));
-      this.logger.log(
-        `SEARCH USER BY NAME - Bad Request!!!`,
-        errorHandler(err),
-      );
+      return errorHandler(err);
     }
   }
   // ? ====================================================

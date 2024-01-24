@@ -1,6 +1,5 @@
 import { Socket } from 'socket.io';
-import { WsGuard } from '../guard/wsGuard';
-
+import { JwtAuthGuard } from '../guard/jwt-authGuard';
 export type WsAuthMiddleware = {
   (client: Socket, next: (err?: Error) => void);
 };
@@ -8,7 +7,8 @@ export type WsAuthMiddleware = {
 export const WsAuthMiddleware = (): WsAuthMiddleware => {
   return async (client, next) => {
     try {
-      await WsGuard.validateUser(client);
+      const token = client?.handshake?.headers.authorization;
+      JwtAuthGuard.validateToken(token);
       next();
     } catch (err) {
       next(err);

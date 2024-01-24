@@ -7,7 +7,7 @@ import {
   UUIDType,
 } from '../../common/shared/common.schema';
 import { NotificationType as NotificationTypeEnum } from '../../chat/constants/notification_constants';
-import { UserType } from '../../user/enum';
+import { USER_TYPE } from '../../user/enum';
 export const NotificationType = z
   .object({
     title: StringType,
@@ -15,16 +15,30 @@ export const NotificationType = z
     icon: StringType,
     type: z.nativeEnum(NotificationTypeEnum),
     read: BooleanType,
-    user: z.object({
+    sender: z.object({
       id: UUIDType,
-      type: z.nativeEnum(UserType),
+      type: z.nativeEnum(USER_TYPE),
+    }),
+    receiver: z.object({
+      id: UUIDType,
+      type: z.nativeEnum(USER_TYPE),
     }),
   })
   .merge(BaseEntitySchema);
 
-export const GetAllUserNotification = z
+export const GetAllUserNotificationSchema = z
   .object({
     userId: UUIDType,
-    userType: z.nativeEnum(UserType),
+    userType: z.nativeEnum(USER_TYPE),
   })
   .merge(PaginationType);
+
+export const CreateUserNotificationSchema = NotificationType.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const MarkReadNotificationSchema = z.object({ id: UUIDType });
+
+export const RemoveNotificationSchema = z.object({ id: UUIDType });

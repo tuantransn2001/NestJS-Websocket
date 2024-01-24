@@ -6,6 +6,7 @@ import {
   JoinRoomSchema,
   RequestContactListSchema,
   RequestMessageSchema,
+  RequestNotificationSchema,
   SearchUserByNameSchema,
   SendRoomMessageSchema,
   TypingSchema,
@@ -20,3 +21,4 @@ export type DeleteConversationDTO = z.infer<typeof DeleteConversationSchema>;
 export type RequestRoomMessageDTO = z.infer<typeof RequestMessageSchema>;
 export type RequestContactListDTO = z.infer<typeof RequestContactListSchema>;
 export type SearchUserByNameDTO = z.infer<typeof SearchUserByNameSchema>;
+export type RequestNotificationDto = z.infer<typeof RequestNotificationSchema>;

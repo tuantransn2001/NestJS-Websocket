@@ -224,8 +224,6 @@ PublishScripts/
 *.nupkg
 # The packages folder can be ignored because of Package Restore
 **/[Pp]ackages/*
-package-lock.json
-yarn.lock
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
@@ -299,7 +297,6 @@ FakesAssemblies/
 
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
-node_modules/
 
 # Typescript v1 declaration files
 typings/
@@ -394,15 +391,21 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# dependencies
+node_modules/
+package-lock.json
+
+# project setting
+.vscode/
+
 =======
 # Local
-.env
-.env.development
-.env.production
-dist
+# .env
+# .env.development
+# .env.production
 .webpack
 .serverless/**/*.zip
 
-# Docker ignore
-Dockerfile
-.dockerignore
+# production
+dist/
+

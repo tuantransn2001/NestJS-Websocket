@@ -3,3 +3,5 @@ export enum NotificationType {
   WARNING = 'warning',
   ERROR = 'error',
 }
+
+const data: NotificationType = NotificationType.INFO;

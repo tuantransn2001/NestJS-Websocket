@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
-import { modelDefineProvider } from '../common/provider';
+import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { DatabaseModule } from '../database/database.module';
 
-import { MODEL_NAME } from '../common/enums/common';
+import { ModelName } from '../common/enums/common';
 import { HealthCheck } from './entities/healthCheck.entity';
 import { HealthCheckController } from './healthCheck.controller';
 import { HealthCheckService } from './healthCheck.service';
-
+import { TerminusModule } from '@nestjs/terminus';
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, TerminusModule],
   controllers: [HealthCheckController],
   providers: [
-    ...modelDefineProvider(MODEL_NAME.HEALTH_CHECK, HealthCheck),
+    ...modelDefineProvider(ModelName.HEALTH_CHECK, HealthCheck),
     HealthCheckService,
   ],
 })

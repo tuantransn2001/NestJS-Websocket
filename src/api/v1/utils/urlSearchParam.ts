@@ -1,8 +1,6 @@
-import { ObjectType } from '../common/types/common';
-
 export class URLSearchParam {
-  public static objToUrlParams(obj: ObjectType) {
-    const toUrlParams = (obj: ObjectType, prefix = '') => {
+  public static objToUrlParams(obj: object) {
+    const toUrlParams = (obj: object, prefix = '') => {
       let urlParams = '';
 
       for (const key in obj) {
@@ -14,7 +12,7 @@ export class URLSearchParam {
 
         if (val instanceof Array) {
           // convert val from Array to object
-          const valToObj: ObjectType = {};
+          const valToObj: object = {};
           val.forEach((v, i) => {
             valToObj[i] = v;
           });
@@ -45,11 +43,11 @@ export class URLSearchParam {
     urlParams = decodeURI(urlParams);
 
     const toObj = (urlParams: string) => {
-      const obj: ObjectType = {};
+      const obj: object = {};
 
       const urlParamsArr = urlParams.split('&');
 
-      const subUrlParamsObj: ObjectType = {};
+      const subUrlParamsObj: object = {};
 
       for (let i = 0; i < urlParamsArr.length; i++) {
         const item = urlParamsArr[i];
@@ -111,7 +109,7 @@ export class URLSearchParam {
     return URLSearchParam.checkIfObjShouldBeArrayAndConvert(toObj(urlParams));
   }
 
-  public static checkIfObjShouldBeArrayAndConvert(obj: ObjectType) {
+  public static checkIfObjShouldBeArrayAndConvert(obj: object) {
     if (obj instanceof Array) {
       obj.forEach((item, i) => {
         if (item instanceof Object) {
@@ -184,7 +182,7 @@ export class URLSearchParam {
     return url + params ?? '';
   }
 
-  public static addObjToUrl(obj: ObjectType, url = window.location.href) {
+  public static addObjToUrl(obj: object, url = window.location.href) {
     return URLSearchParam.addParamsToUrl(
       URLSearchParam.objToUrlParams(obj),
       url,

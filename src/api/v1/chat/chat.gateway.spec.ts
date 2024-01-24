@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing';
 import { ChatGateway } from './chat.gateway';
 import { INestApplication } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { modelDefineProvider } from '../common/provider';
+import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { Conversation } from './entities/conversation.entity';
 import { UnibertyService } from '../uniberty/uniberty.service';
 import { DatabaseModule } from '../database/database.module';

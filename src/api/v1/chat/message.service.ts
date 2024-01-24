@@ -10,14 +10,10 @@ import {
 } from './shared/chat.interface';
 import { isEmpty } from '../common';
 import { Model } from 'mongoose';
-import {
-  HttpException,
-  RestFullAPI,
-  errorHandler,
-  handleErrorNotFound,
-} from '../utils';
+import { RestFullAPI, errorHandler, handleErrorNotFound } from '../utils';
 import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
 
+import { ObjectType } from '../common/types/common';
 import { UserService } from '../user/user.service';
 import { isSingleChat } from './helper';
 
@@ -31,7 +27,7 @@ export class MessageService {
     const existMessages = await asyncReduce(
       messages,
       async (
-        messList,
+        messList: MessageType[],
         { content, sender, isDelete, id, createdAt, updatedAt }: MessageType,
       ) => {
         if (!isDelete) {
@@ -54,10 +50,10 @@ export class MessageService {
     return existMessages;
   }
 
-  public handleGetAllConversationByMembers = async (
+  public async handleGetAllConversationByMembers(
     conversationModel: Model<IConversation>,
     members: MemberTypeArray,
-  ) => {
+  ) {
     try {
       const queryCondition = members.map(({ id, type }) => ({
         [`members.id`]: id,
@@ -80,33 +76,31 @@ export class MessageService {
           },
         ]);
 
+      if (isEmpty(foundConversation)) return [];
+
       const foundSingleConversation = foundConversation.find(({ members }) =>
         isSingleChat(members),
       );
 
-      return RestFullAPI.onSuccess(
-        STATUS_CODE.OK,
-        STATUS_MESSAGE.SUCCESS,
-        isEmpty(foundSingleConversation)
-          ? {}
-          : {
-              ...foundSingleConversation,
-              members: await this.handleGetFullUserDetailByIDList(
-                foundSingleConversation.members,
-              ),
-              messages: await this.handleFilterMessageAlreadyExist(
-                foundSingleConversation.messages,
-              ),
-            },
-      );
+      const response = {
+        ...foundSingleConversation,
+        members: await this.handleGetFullUserDetailByIDList(
+          foundSingleConversation.members,
+        ),
+        messages: await this.handleFilterMessageAlreadyExist(
+          foundSingleConversation.messages,
+        ),
+      };
+
+      return response;
     } catch (err) {
       return errorHandler(err);
     }
-  };
-  public handleGetAllMessageByConversationID = async (
+  }
+  public async handleGetAllMessageByConversationID(
     ConversationModel: Model<IConversation>,
     id: string,
-  ) => {
+  ) {
     try {
       const foundConversation = await ConversationModel.findOne(
         {
@@ -132,25 +126,21 @@ export class MessageService {
           ),
         };
 
-        return RestFullAPI.onSuccess(
-          STATUS_CODE.OK,
-          STATUS_MESSAGE.SUCCESS,
-          responseData,
-        );
+        return responseData;
       } else {
         return handleErrorNotFound(STATUS_MESSAGE.NOT_FOUND);
       }
     } catch (err) {
       return errorHandler(err);
     }
-  };
-  public handleGetFullUserDetailByIDList = async (members: MemberTypeArray) => {
+  }
+  public async handleGetFullUserDetailByIDList(members: MemberTypeArray) {
     if (isEmpty(members)) {
       return [];
     } else {
       const IDList: any = members.reduce(
-        (IdListResult: object, member: MemberType) => {
-          const currentUserType = member.type as keyof object;
+        (IdListResult: ObjectType, member: MemberType) => {
+          const currentUserType = member.type as keyof ObjectType;
           const currentUserID = member.id;
 
           IdListResult.ids[currentUserType].push(currentUserID);
@@ -160,15 +150,15 @@ export class MessageService {
         {
           ids: { admin: [], user: [], guest: [] },
         },
-      ) as object;
+      ) as ObjectType;
 
-      const result: object = (await this.userService.searchListUser(
+      const result: ObjectType = (await this.userService.searchListUser(
         IDList,
-      )) as object;
+      )) as ObjectType;
 
       return Object.entries(result)
         .map(([_, users]) => users)
         .flat(1);
     }
-  };
+  }
 }

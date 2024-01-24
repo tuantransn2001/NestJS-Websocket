@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { UserType } from '../../user/enum';
+import { USER_TYPE } from '../../user/enum';
 import { NotificationType } from '../../chat/constants/notification_constants';
 import { ModelName } from '../../common/enums/common';
 
@@ -25,10 +25,17 @@ export const Notification = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    user: {
+
+    sender: {
       id: { type: String },
-      type: { type: String, enum: UserType },
+      type: { type: String, enum: USER_TYPE },
     },
+
+    receiver: {
+      id: { type: String },
+      type: { type: String, enum: USER_TYPE },
+    },
+
     createdAt: { type: Date },
     updatedAt: { type: Date },
   },

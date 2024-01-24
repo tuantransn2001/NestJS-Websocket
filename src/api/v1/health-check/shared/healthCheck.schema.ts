@@ -8,5 +8,5 @@ export const HealthCheckSchema = z.object({
       message: z.string(),
     }),
   ),
-  timestamp: z.number(),
+  timestamp: z.date(),
 });

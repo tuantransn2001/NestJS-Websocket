@@ -2,17 +2,20 @@ import { Module } from '@nestjs/common';
 import { DatabaseModule } from '../database/database.module';
 import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
-import { modelDefineProvider } from '../common/provider';
+import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { ModelName } from '../common/enums/common';
 import { Conversation } from './entities/conversation.entity';
 import { UserService } from '../user/user.service';
 import { MessageService } from './message.service';
-import { Notification } from '../notification/entities/notification.entity';
 import { NotificationService } from '../notification/notification.service';
+import { Notification } from '../notification/entities/notification.entity';
+import { LocalFileService } from '../local-file/local-file.service';
+import { LocalFile } from '../local-file/entities/localFile.entity';
 
 @Module({
   imports: [DatabaseModule],
   providers: [
+    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFile),
     ...modelDefineProvider(ModelName.CONVERSATION, Conversation),
     ...modelDefineProvider(ModelName.NOTIFICATION, Notification),
     ChatGateway,
@@ -20,6 +23,7 @@ import { NotificationService } from '../notification/notification.service';
     UserService,
     MessageService,
     NotificationService,
+    LocalFileService,
   ],
 })
 class ChatModule {}

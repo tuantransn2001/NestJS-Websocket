@@ -23,9 +23,14 @@ import {
   EditMessageDTO,
 } from './dto/input';
 import { WsGuard } from '../common/guard/wsGuard';
-import { WsAuthMiddleware } from '../common/middleware/wsAuthMiddleware';
+import { WsAuthMiddleware } from '../common/middleware/wsAuth.middleware';
+import {
+  GetAllUserNotificationDto,
+  MarkReadNotificationDto,
+  RemoveNotificationDto,
+} from '../notification/shared/notification.interface';
+import { NotificationService } from '../notification/notification.service';
 
-// @UseGuards(WsGuard)
 @UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -33,7 +38,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   webSocketServer: SocketServer;
 
-  constructor(private chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly notificationService: NotificationService,
+  ) {}
   // ? ====================================================
   // ? ===================== CONNECT ====================== /* =>> DONE
   // ? ====================================================
@@ -77,14 +85,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clientSendRoomMessDTO.hasOwnProperty('conversationID') &&
       clientSendRoomMessDTO.conversationID !== '';
     if (isConversationExist) {
-      return await this.chatService.handleClientSendRoomMessage(
+      const response = await this.chatService.handleClientSendRoomMessage(
         clientSendRoomMessDTO,
-        this.webSocketServer,
+      );
+      this.webSocketServer.sockets.emit(
+        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+        response,
       );
     } else {
-      return await this.chatService.handleClientSendFirstRoomMessage(
+      const response = await this.chatService.handleClientSendFirstRoomMessage(
         clientSendRoomMessDTO,
-        this.webSocketServer,
+      );
+
+      this.webSocketServer.sockets.emit(
+        EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+        response,
       );
     }
   }
@@ -93,7 +108,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.TYPING)
   public async listenUserTyping(@MessageBody() typingDTO: TypingDTO) {
-    return this.chatService.handleTyping(typingDTO, this.webSocketServer);
+    const response = this.chatService.handleTyping(typingDTO);
+
+    this.webSocketServer.sockets.emit(EVENTS.SERVER.IS_TYPING, response);
   }
   // ? ====================================================
   // ? ================= DELETE MESSAGE =================== /* =>> DONE
@@ -102,9 +119,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenUserDeleteMessageByID(
     @MessageBody() deleteMessageDTO: DeleteMessageDTO,
   ) {
-    return await this.chatService.handleDeleteMessageConversation(
+    const response = await this.chatService.handleDeleteMessageConversation(
       deleteMessageDTO,
-      this.webSocketServer,
+    );
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.DELETE_MESSAGE_RESULT,
+      response,
     );
   }
   // ? ====================================================
@@ -114,9 +134,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenUserDeleteConversationByID(
     @MessageBody() deleteConversationDTO: DeleteConversationDTO,
   ) {
-    return await this.chatService.handleDeleteConversation(
+    const response = await this.chatService.handleDeleteConversation(
       deleteConversationDTO,
-      this.webSocketServer,
+    );
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.DELETE_CONVERSATION_RESULT,
+      response,
     );
   }
   // ? ====================================================
@@ -126,9 +150,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenClientRequestRoomMessages(
     @MessageBody() requestRoomMessageDTO: RequestRoomMessageDTO,
   ) {
-    return await this.chatService.handleGetRoomMessages(
+    const response = await this.chatService.handleGetRoomMessages(
       requestRoomMessageDTO,
-      this.webSocketServer,
+    );
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.RECEIVE_ROOM_MESSAGE,
+      response,
     );
   }
   // ? ====================================================
@@ -138,9 +166,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenClientRequestContactList(
     @MessageBody() requestContactListDTO: RequestContactListDTO,
   ) {
-    return await this.chatService.handleGetContactList(
+    const response = await this.chatService.handleGetContactList(
       requestContactListDTO,
-      this.webSocketServer,
+    );
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.RECEIVE_CONTACT_LIST,
+      response,
     );
   }
   // ? ====================================================
@@ -150,9 +181,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   public async listenClientEditMessage(
     @MessageBody() editMessageDTO: EditMessageDTO,
   ) {
-    return await this.chatService.handleEditMessage(
-      editMessageDTO,
-      this.webSocketServer,
+    const response = await this.chatService.handleEditMessage(editMessageDTO);
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.EDIT_MESSAGE_RESULT,
+      response,
     );
   }
   // ? ====================================================
@@ -168,5 +201,56 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage(EVENTS.CLIENT.BLOCK)
   public async listenClientForwardMessage() {
     return this.chatService.handleForwardMessage();
+  }
+
+  // ? ====================================================
+  // ? ================== REQUEST NOTIFICATION ============ /* =>> DONE
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.REQUEST_NOTIFICATION)
+  public async listenClientRequestNotification(
+    @MessageBody() getAllUserNotificationDto: GetAllUserNotificationDto,
+  ) {
+    const response = await this.notificationService.getAll(
+      getAllUserNotificationDto,
+    );
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.RECEIVE_NOTIFICATION,
+      response,
+    );
+  }
+
+  // ? ====================================================
+  // ? ================ MARK READ NOTIFICATION ============ /* =>> DONE
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.MARK_READ_NOTIFICATION)
+  public async listenClientRequestMarkReadNotification(
+    @MessageBody() markReadNotificationDto: MarkReadNotificationDto,
+  ) {
+    const response = await this.notificationService.markRead(
+      markReadNotificationDto.id,
+    );
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.MARK_READ_NOTIFICATION_RESULT,
+      response,
+    );
+  }
+
+  // ? ====================================================
+  // ? ================ MARK READ NOTIFICATION ============ /* =>> DONE
+  // ? ====================================================
+  @SubscribeMessage(EVENTS.CLIENT.REMOVE_NOTIFICATION)
+  public async listenClientRequestRemoveNotification(
+    @MessageBody() removeNotificationDto: RemoveNotificationDto,
+  ) {
+    const response = await this.notificationService.remove(
+      removeNotificationDto.id,
+    );
+
+    this.webSocketServer.sockets.emit(
+      EVENTS.SERVER.REMOVE_NOTIFICATION_RESULT,
+      response,
+    );
   }
 }

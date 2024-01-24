@@ -5,34 +5,17 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Socket } from 'socket.io';
-
-import { USER_TYPE } from '../enums/common';
-import { Axios } from '../../utils';
-
-export type WsAuthMiddlewarePayload = {
-  token: string;
-  type: USER_TYPE;
-};
+import { JwtAuthGuard } from './jwt-authGuard';
 
 @Injectable()
 export class WsGuard implements CanActivate {
   private readonly logger = new Logger();
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    this.logger.log('WsGuard canActivate is working!!!');
-    if (context.getType() !== 'ws') return true;
     const client: Socket = context.switchToWs().getClient<Socket>();
-    await WsGuard.validateUser(client);
-
+    const token = client.handshake.headers.authorization;
+    JwtAuthGuard.validateToken(token);
+    this.logger.log('WsGuard canActivate is working!!!');
     return true;
-  }
-
-  public static async validateUser(client: Socket) {
-    const token: string = client.handshake?.headers?.authorization as string;
-
-    return await Axios.createInstance({
-      baseURL: process.env.UNIBERTY_BASE_URL,
-      token: token,
-    }).get(`/api/${USER_TYPE.ADMIN}/me`);
   }
 }

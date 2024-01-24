@@ -1,6 +1,7 @@
 import { MemberType, MessageTypeArray } from '../shared/chat.interface';
 import { IUser } from '../../user/shared/user.interface';
 import { IPagination } from '../../common/shared/common.interface';
+
 export const handleConvertUserIDToString = (users: IUser[]) =>
   users.map((u) => ({ ...u, id: u.id.toString() }));
 

@@ -96,3 +96,8 @@ export const SearchUserByNameSchema = z.object({
   offset: z.number().optional(),
   name: z.string().optional(),
 });
+// ? ==> REQUEST NOTIFICATION
+export const RequestNotificationSchema = z.object({
+  user_id: StringType,
+  user_type: StringType,
+});

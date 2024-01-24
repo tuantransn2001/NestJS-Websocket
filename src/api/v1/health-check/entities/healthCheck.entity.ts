@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { MODEL_NAME } from '../../common/enums/common';
+import { ModelName } from '../../common/enums/common';
 import { v4 as uuidv4 } from 'uuid';
 export const HealthCheck = new mongoose.Schema(
   {
@@ -9,7 +9,7 @@ export const HealthCheck = new mongoose.Schema(
     updatedAt: { type: Date },
   },
   {
-    collection: MODEL_NAME.HEALTH_CHECK,
+    collection: ModelName.HEALTH_CHECK,
     minimize: false,
   },
 );
