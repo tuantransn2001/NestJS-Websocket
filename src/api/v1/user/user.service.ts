@@ -60,12 +60,14 @@ export class UserService {
 
     return foundUsers;
   }
+
   public async getCurrentLogin(loginDto: LoginDto): Promise<User | undefined> {
     const foundUser = await User.query()
       .findOne({ is_deleted: false, ...loginDto })
       .first();
     return foundUser;
   }
+
   public async insertOne(user: RegisterDto) {
     const SALT = 10;
     const hash = bcrypt.hashSync(user.password, SALT);
@@ -122,6 +124,7 @@ export class UserService {
 
     return base;
   }
+
   public async getOneUser(id: string) {
     const foundUser = await this.findUniq(id);
     if (!foundUser) return handleErrorNotFound('User do not exists');

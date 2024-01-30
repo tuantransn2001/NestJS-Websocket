@@ -30,6 +30,18 @@ import {
   RemoveNotificationDto,
 } from '../notification/shared/notification.interface';
 import { NotificationService } from '../notification/notification.service';
+import { ZodValidationPipe } from 'nestjs-zod';
+import {
+  DeleteConversationSchema,
+  DeleteMessageSchema,
+  EditMessageSchema,
+  JoinRoomSchema,
+  RequestContactListSchema,
+  RequestMessageSchema,
+  SendRoomMessageSchema,
+  TypingSchema,
+} from './shared/chat.shema';
+import { RemoveNotificationSchema } from '../notification/shared/notification.schema';
 
 @UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })
@@ -68,7 +80,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ==================== JOIN ROOM ===================== /* =>> DONE
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.JOIN_ROOM)
-  public listenClientJoinRoom(@MessageBody() clientJoinRoomDTO: JoinRoomDTO) {
+  public listenClientJoinRoom(
+    @MessageBody(new ZodValidationPipe(JoinRoomSchema))
+    clientJoinRoomDTO: JoinRoomDTO,
+  ) {
     return this.chatService.handleClientJoinRoom(
       clientJoinRoomDTO,
       this.webSocketServer,
@@ -79,7 +94,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.SEND_ROOM_MESSAGE)
   public async listenClientSendRoomMessage(
-    @MessageBody() clientSendRoomMessDTO: SendRoomMessageDTO,
+    @MessageBody(new ZodValidationPipe(SendRoomMessageSchema))
+    clientSendRoomMessDTO: SendRoomMessageDTO,
   ) {
     const isConversationExist =
       clientSendRoomMessDTO.hasOwnProperty('conversationID') &&
@@ -107,7 +123,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ===================== TYPING ======================= /* =>> Checking... -> Rebuild...
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.TYPING)
-  public async listenUserTyping(@MessageBody() typingDTO: TypingDTO) {
+  public async listenUserTyping(
+    @MessageBody(new ZodValidationPipe(TypingSchema)) typingDTO: TypingDTO,
+  ) {
     const response = this.chatService.handleTyping(typingDTO);
 
     this.webSocketServer.sockets.emit(EVENTS.SERVER.IS_TYPING, response);
@@ -117,7 +135,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.DELETE_MESSAGE)
   public async listenUserDeleteMessageByID(
-    @MessageBody() deleteMessageDTO: DeleteMessageDTO,
+    @MessageBody(new ZodValidationPipe(DeleteMessageSchema))
+    deleteMessageDTO: DeleteMessageDTO,
   ) {
     const response = await this.chatService.handleDeleteMessageConversation(
       deleteMessageDTO,
@@ -132,7 +151,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.DELETE_CONVERSATION)
   public async listenUserDeleteConversationByID(
-    @MessageBody() deleteConversationDTO: DeleteConversationDTO,
+    @MessageBody(new ZodValidationPipe(DeleteConversationSchema))
+    deleteConversationDTO: DeleteConversationDTO,
   ) {
     const response = await this.chatService.handleDeleteConversation(
       deleteConversationDTO,
@@ -148,7 +168,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.REQUEST_ROOM_MESSAGE)
   public async listenClientRequestRoomMessages(
-    @MessageBody() requestRoomMessageDTO: RequestRoomMessageDTO,
+    @MessageBody(new ZodValidationPipe(RequestMessageSchema))
+    requestRoomMessageDTO: RequestRoomMessageDTO,
   ) {
     const response = await this.chatService.handleGetRoomMessages(
       requestRoomMessageDTO,
@@ -164,7 +185,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.REQUEST_CONTACT_LIST)
   public async listenClientRequestContactList(
-    @MessageBody() requestContactListDTO: RequestContactListDTO,
+    @MessageBody(new ZodValidationPipe(RequestContactListSchema))
+    requestContactListDTO: RequestContactListDTO,
   ) {
     const response = await this.chatService.handleGetContactList(
       requestContactListDTO,
@@ -179,7 +201,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.EDIT_MESSAGE)
   public async listenClientEditMessage(
-    @MessageBody() editMessageDTO: EditMessageDTO,
+    @MessageBody(new ZodValidationPipe(EditMessageSchema))
+    editMessageDTO: EditMessageDTO,
   ) {
     const response = await this.chatService.handleEditMessage(editMessageDTO);
 
@@ -242,7 +265,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ? ====================================================
   @SubscribeMessage(EVENTS.CLIENT.REMOVE_NOTIFICATION)
   public async listenClientRequestRemoveNotification(
-    @MessageBody() removeNotificationDto: RemoveNotificationDto,
+    @MessageBody(new ZodValidationPipe(RemoveNotificationSchema))
+    removeNotificationDto: RemoveNotificationDto,
   ) {
     const response = await this.notificationService.remove(
       removeNotificationDto.id,
