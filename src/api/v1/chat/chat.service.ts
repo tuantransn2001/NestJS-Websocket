@@ -26,17 +26,6 @@ import {
   handleGetUniqObjInArr,
 } from './helper';
 import {
-  DeleteConversationSchema,
-  DeleteMessageSchema,
-  JoinRoomSchema,
-  RequestContactListSchema,
-  RequestMessageSchema,
-  SearchUserByNameSchema,
-  SendRoomMessageSchema,
-  TypingSchema,
-  EditMessageSchema,
-} from './shared/chat.shema';
-import {
   IConversation,
   MemberType,
   MemberTypeArray,
@@ -64,7 +53,7 @@ export class ChatService {
   ) {
     this.logger.log('CLIENT JOIN ROOM', clientJoinRoomDTO);
     try {
-      const { roomID } = JoinRoomSchema.parse(clientJoinRoomDTO);
+      const { roomID } = clientJoinRoomDTO;
       server.sockets.socketsJoin(roomID);
       server.sockets.emit(
         EVENTS.SERVER.JOINED_ROOM,
@@ -75,7 +64,10 @@ export class ChatService {
       this.logger.log('CLIENT JOIN ROOM - Successfully!!!');
     } catch (err) {
       server.sockets.emit(EVENTS.SERVER.JOINED_ROOM, errorHandler(err));
-      this.logger.log('CLIENT JOIN ROOM - Bad Request!!!', errorHandler(err));
+      this.logger.log(
+        'CLIENT JOIN ROOM - INTERNAL SERVER ERROR!!!',
+        errorHandler(err),
+      );
     }
   }
   // ? ====================================================
@@ -84,35 +76,29 @@ export class ChatService {
   // ? ====================================================
   public async handleClientSendRoomMessage(payload: SendRoomMessageDTO) {
     try {
-      const { conversationID, message } = SendRoomMessageSchema.parse(payload);
+      const { conversationID, message } = payload;
 
-      const response = await this.conversationModel
-        .findOneAndUpdate(
-          { id: conversationID },
-          {
-            $push: {
-              messages: { ...message, id: uuidv4() },
-            },
+      await this.conversationModel.findOneAndUpdate(
+        { id: conversationID },
+        {
+          $push: {
+            messages: { ...message, id: uuidv4() },
           },
-        )
-        .then(async () => {
-          const responseConversation =
-            await this.messageService.handleGetAllMessageByConversationID(
-              this.conversationModel,
-              conversationID,
-            );
+        },
+      );
 
-          return RestFullAPI.onSuccess(
-            STATUS_CODE.OK,
-            STATUS_MESSAGE.SUCCESS,
-            responseConversation,
-          );
-        })
-        .catch(errorHandler);
+      const responseConversation =
+        await this.messageService.handleGetAllMessageByConversationID(
+          this.conversationModel,
+          conversationID,
+        );
 
-      return response;
+      return RestFullAPI.onSuccess(
+        STATUS_CODE.OK,
+        STATUS_MESSAGE.SUCCESS,
+        responseConversation,
+      );
     } catch (err) {
-      // ? Zod Error
       return errorHandler(err);
     }
   }
@@ -122,7 +108,7 @@ export class ChatService {
   // ? ====================================================
   public async handleClientSendFirstRoomMessage(payload: SendRoomMessageDTO) {
     try {
-      const { members, message } = SendRoomMessageSchema.parse(payload);
+      const { members, message } = payload;
       const conversationID = uuidv4();
       const newConversationDocument: IConversation = {
         id: conversationID,
@@ -132,23 +118,19 @@ export class ChatService {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      const response = await this.conversationModel
-        .create(newConversationDocument)
-        .then(async (response) => {
-          const responseConversation =
-            await this.messageService.handleGetAllMessageByConversationID(
-              this.conversationModel,
-              response.id,
-            );
-          return RestFullAPI.onSuccess(
-            STATUS_CODE.OK,
-            STATUS_MESSAGE.SUCCESS,
-            responseConversation,
-          );
-        })
-        .catch(errorHandler);
-
-      return response;
+      const response = await this.conversationModel.create(
+        newConversationDocument,
+      );
+      const responseConversation =
+        await this.messageService.handleGetAllMessageByConversationID(
+          this.conversationModel,
+          response.id,
+        );
+      return RestFullAPI.onSuccess(
+        STATUS_CODE.OK,
+        STATUS_MESSAGE.SUCCESS,
+        responseConversation,
+      );
     } catch (err) {
       return errorHandler(err);
     }
@@ -158,16 +140,14 @@ export class ChatService {
   // ? ====================================================
   public async handleDeleteConversation(payload: DeleteConversationDTO) {
     try {
-      const { id } = DeleteConversationSchema.parse(payload);
+      const { id } = payload;
 
-      const response = await this.conversationModel
-        .updateOne({ id }, { $set: { isDelete: true } })
-        .then(() =>
-          RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS),
-        )
-        .catch(errorHandler);
+      await this.conversationModel.updateOne(
+        { id },
+        { $set: { isDelete: true } },
+      );
 
-      return response;
+      return RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS);
     } catch (err) {
       return errorHandler(err);
     }
@@ -177,8 +157,7 @@ export class ChatService {
   // ? ====================================================
   public async handleEditMessage(payload: EditMessageDTO) {
     try {
-      const { messageID, conversationID, dto } =
-        EditMessageSchema.parse(payload);
+      const { messageID, conversationID, dto } = payload;
 
       const foundConversation = await this.conversationModel.findOne({
         id: conversationID,
@@ -226,24 +205,14 @@ export class ChatService {
   // ? ====================================================
   public async handleDeleteMessageConversation(payload: DeleteMessageDTO) {
     try {
-      const { conversationID, messageID } = DeleteMessageSchema.parse(payload);
+      const { conversationID, messageID } = payload;
 
-      const response = await this.conversationModel
-        .updateOne(
-          { id: conversationID, 'messages.id': messageID },
-          { $set: { 'messages.$.isDelete': true } },
-        )
-        .then(() => {
-          return RestFullAPI.onSuccess(
-            STATUS_CODE.CREATED,
-            STATUS_MESSAGE.SUCCESS,
-          );
-        })
-        .catch((err) => {
-          return errorHandler(err);
-        });
+      await this.conversationModel.updateOne(
+        { id: conversationID, 'messages.id': messageID },
+        { $set: { 'messages.$.isDelete': true } },
+      );
 
-      return response;
+      return RestFullAPI.onSuccess(STATUS_CODE.CREATED, STATUS_MESSAGE.SUCCESS);
     } catch (err) {
       return errorHandler(err);
     }
@@ -253,7 +222,7 @@ export class ChatService {
   // ? ====================================================
   public async handleTyping(payload: TypingDTO) {
     try {
-      const { sender, isTyping } = TypingSchema.parse(payload);
+      const { sender, isTyping } = payload;
 
       return RestFullAPI.onSuccess(STATUS_CODE.OK, STATUS_MESSAGE.SUCCESS, {
         sender,
@@ -268,7 +237,7 @@ export class ChatService {
   // ? ====================================================
   public async handleGetContactList(payload: RequestContactListDTO) {
     try {
-      const { sort, pagination } = RequestContactListSchema.parse(payload);
+      const { sort, pagination } = payload;
       const { id, type } = sort;
 
       const { _skip, _limit } = handleGetPagination(pagination);
@@ -352,7 +321,7 @@ export class ChatService {
   // ? ====================================================
   public async handleGetRoomMessages(payload: RequestRoomMessageDTO) {
     try {
-      const { sort } = RequestMessageSchema.parse(payload);
+      const { sort } = payload;
       const { id, members } = sort;
 
       const isGetByID = members === undefined;
@@ -390,7 +359,7 @@ export class ChatService {
   // ? ====================================================
   public async handleSearchUserByName(payload: SearchUserByNameDTO) {
     try {
-      const { name } = SearchUserByNameSchema.parse(payload);
+      const { name } = payload;
 
       const userListResponse = await this.userService.searchUserByName({
         offset: 1,
