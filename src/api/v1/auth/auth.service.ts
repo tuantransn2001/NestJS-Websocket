@@ -13,7 +13,7 @@ import { isEmpty } from '../common';
 export class AuthService {
   constructor(private userService: UserService) {}
 
-  public async issueToken(user: User, response: Response) {
+  public issueToken(user: User, response: Response) {
     const payload = {
       sub: user.id,
       fullName: `${user.last_name} ${user.middle_name} ${user.first_name}`,
@@ -64,7 +64,7 @@ export class AuthService {
     const loginResponse = RestFullAPI.onSuccess(
       STATUS_CODE.CREATED,
       'Successfully logged in',
-      await this.issueToken(foundUser, response),
+      this.issueToken(foundUser, response),
     );
 
     return loginResponse;
@@ -85,7 +85,7 @@ export class AuthService {
     const registerResponse = RestFullAPI.onSuccess(
       STATUS_CODE.CREATED,
       STATUS_MESSAGE.SUCCESS,
-      await this.issueToken(createUserResult, response),
+      this.issueToken(createUserResult, response),
     );
 
     return registerResponse;
@@ -131,13 +131,13 @@ export class AuthService {
       process.env.ACCESS_TOKEN_SECRET,
     );
     response.cookie('access_token', accessToken, { httpOnly: true });
-    const refreshTokenReponse = RestFullAPI.onSuccess(
+    const refreshTokenResponse = RestFullAPI.onSuccess(
       STATUS_CODE.CREATED,
       'Successfully logged in',
       { accessToken },
     );
 
-    return refreshTokenReponse;
+    return refreshTokenResponse;
   }
   public async getMe(req: Request) {
     const access_token = req.cookies['access_token'];

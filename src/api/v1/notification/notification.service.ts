@@ -79,6 +79,7 @@ export class NotificationService {
   public async getOne(id: string) {
     return await this.notificationModel.findOne({ id }).lean();
   }
+
   public async markRead(id: string) {
     try {
       const response = await this.notificationModel.findOneAndUpdate(

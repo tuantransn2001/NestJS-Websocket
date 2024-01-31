@@ -6,7 +6,7 @@ import {
   StringType,
   UUIDType,
 } from '../../common/shared/common.schema';
-import { NotificationType as NotificationTypeEnum } from '../../chat/constants/notification_constants';
+import { NotificationType as NotificationTypeEnum } from '../../chat/constants/notification';
 import { USER_TYPE } from '../../user/enum';
 export const NotificationType = z
   .object({

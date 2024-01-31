@@ -3,7 +3,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Server } from 'socket.io';
 import { ModelName } from '../common/enums/common';
-import { EVENTS } from './constants/event_constants';
+import { EVENTS } from './constants/event';
 import { RestFullAPI } from '../utils/apiResponse';
 import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
 import { errorHandler } from '../utils/errorHandler';
@@ -47,10 +47,7 @@ export class ChatService {
   // ? ====================================================
   // ? CLIENT JOIN ROOM
   // ? ====================================================
-  public handleClientJoinRoom<D extends JoinRoomDTO, S extends Server>(
-    clientJoinRoomDTO: D,
-    server: S,
-  ) {
+  public handleClientJoinRoom(clientJoinRoomDTO: JoinRoomDTO, server: Server) {
     this.logger.log('CLIENT JOIN ROOM', clientJoinRoomDTO);
     try {
       const { roomID } = clientJoinRoomDTO;
