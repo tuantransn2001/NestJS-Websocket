@@ -26,6 +26,7 @@ async function bootstrap(): Promise<NestExpressApplication> {
       max: 100, // limit each IP to 100 requests per windowMs
     }),
   );
+
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 

@@ -10,7 +10,7 @@ import {
 
 import { Logger, UseGuards } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
-import { EVENTS } from './constants/event_constants';
+import { EVENTS } from './constants/event';
 import { ChatService } from './chat.service';
 import {
   JoinRoomDTO,

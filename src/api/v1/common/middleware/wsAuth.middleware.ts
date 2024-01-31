@@ -1,5 +1,6 @@
 import { Socket } from 'socket.io';
 import { JwtAuthGuard } from '../guard/jwt-authGuard';
+
 export type WsAuthMiddleware = {
   (client: Socket, next: (err?: Error) => void);
 };

@@ -9,6 +9,7 @@ import {
   Request,
   UploadedFile,
   UseInterceptors,
+  UsePipes,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
@@ -21,6 +22,9 @@ import LocalFilesInterceptor from '../common/interceptor/localFile.interceptor';
 import { LocalFileService } from '../local-file/local-file.service';
 import { UpdateUserDto } from '../auth/dto/input/updateUserDto';
 import { GetOneDto } from './shared/user.interface';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { SearchUserByNameSchema } from '../chat/shared/chat.shema';
+import { GetOneSchema } from './shared/user.schema';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
@@ -30,6 +34,7 @@ export class UserController {
   ) {}
 
   @Post('/search')
+  @UsePipes(new ZodValidationPipe(SearchUserByNameSchema))
   public async searchUserByName(
     @Query() searchUserByNameDTO: SearchUserByNameDTO,
     @GetPagination() paginationDto: Pagination,
@@ -42,6 +47,7 @@ export class UserController {
     });
   }
   @Get('/')
+  @UsePipes(new ZodValidationPipe(GetOneSchema))
   public async findOne(@Query() getOneDto: GetOneDto) {
     return await this.userService.getOneUser(getOneDto.id);
   }
@@ -64,6 +70,7 @@ export class UserController {
       },
     }),
   )
+  @Patch('/profile')
   public async update(
     @Request() request: Request,
     @Body() updateUserDto: UpdateUserDto,
