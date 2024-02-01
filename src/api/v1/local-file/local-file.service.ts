@@ -1,45 +1,28 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Inject, Injectable } from '@nestjs/common';
-import { ModelName } from '../common/enums/common';
-import { Model } from 'mongoose';
+
 import {
   CreateLocalFileDto,
-  ILocalFile,
   UpdateLocalFileDto,
 } from './shared/localFile.interface';
 import { RestFullAPI, errorHandler, handleErrorNotFound } from '../utils';
-import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
-import {
-  CreateLocalFileSchema,
-  UpdateLocalFileSchema,
-} from './shared/localFile.schema';
+import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api.enum';
+import { UpdateLocalFileSchema } from './shared/localFile.schema';
+import { ILocalFileRepository } from './repository/ilocalfile.repository';
 @Injectable()
 export class LocalFileService {
   constructor(
-    @Inject(ModelName.LOCAL_FILE)
-    private readonly localFileModel: Model<ILocalFile>,
+    @Inject('LocalFileRepository')
+    private readonly localFileRepository: ILocalFileRepository,
   ) {}
-
-  public async findUniq(id?: string) {
-    const foundLocalFile = await this.localFileModel.findOne({
-      id,
-    });
-
-    return foundLocalFile ? foundLocalFile : undefined;
-  }
 
   public async updateOne(payload: UpdateLocalFileDto) {
     try {
-      const { id, ...rest } = UpdateLocalFileSchema.parse(payload);
-      const foundLocalFile = await this.findUniq(id);
+      const { id, ...file } = UpdateLocalFileSchema.parse(payload);
+      const foundLocalFile = await this.localFileRepository.findOneById(id);
       if (foundLocalFile) return handleErrorNotFound('File do not exist');
 
-      const response = await this.localFileModel.findOneAndUpdate(
-        {
-          id: id,
-        },
-        { ...rest },
-      );
+      const response = await this.localFileRepository.update(id, file);
 
       return RestFullAPI.onSuccess(
         STATUS_CODE.OK,
@@ -53,9 +36,9 @@ export class LocalFileService {
 
   public async create(payload: CreateLocalFileDto) {
     try {
-      const { fileName, path, mimeType } = CreateLocalFileSchema.parse(payload);
+      const { fileName, path, mimeType } = payload;
 
-      const response = await this.localFileModel.create({
+      const response = await this.localFileRepository.create({
         id: uuidv4(),
         fileName: fileName,
         path: path,

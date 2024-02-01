@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { healthCheck } from '../common';
-import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
+import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api.enum';
 import { ModelName } from '../common/enums/common';
 import { RestFullAPI } from '../utils/apiResponse';
 import { errorHandler } from '../utils/errorHandler';

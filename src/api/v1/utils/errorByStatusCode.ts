@@ -1,4 +1,4 @@
-import { STATUS_CODE } from '../common/enums/api_enums';
+import { STATUS_CODE } from '../common/enums/api.enum';
 import { RestFullAPI } from './apiResponse';
 import { HttpException } from './http.exception';
 

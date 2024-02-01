@@ -7,7 +7,7 @@ import {
   MessageTypeArray,
   UserType,
   ConversationTypeArray,
-} from './chat.shema';
+} from './chat.common.schema';
 
 export type MemberType = z.infer<typeof MemberType>;
 export type MemberTypeArray = z.infer<typeof MemberTypeArray>;

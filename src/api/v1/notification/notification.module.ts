@@ -5,6 +5,7 @@ import { ModelName } from '../common/enums/common';
 import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { Notification } from './entities/notification.entity';
 import { UserService } from '../user/user.service';
+import { NotificationRepository } from './repository/notification.repository';
 
 @Module({
   imports: [DatabaseModule],
@@ -12,6 +13,10 @@ import { UserService } from '../user/user.service';
     ...modelDefineProvider(ModelName.NOTIFICATION, Notification),
     NotificationService,
     UserService,
+    {
+      provide: 'NotificationRepository',
+      useValue: NotificationRepository,
+    },
   ],
 })
 export class NotificationModule {}

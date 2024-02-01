@@ -5,19 +5,9 @@ import { Server } from 'socket.io';
 import { ModelName } from '../common/enums/common';
 import { EVENTS } from './constants/event';
 import { RestFullAPI } from '../utils/apiResponse';
-import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
+import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api.enum';
 import { errorHandler } from '../utils/errorHandler';
-import {
-  DeleteConversationDTO,
-  DeleteMessageDTO,
-  RequestContactListDTO,
-  TypingDTO,
-  SearchUserByNameDTO,
-  RequestRoomMessageDTO,
-  SendRoomMessageDTO,
-  JoinRoomDTO,
-  EditMessageDTO,
-} from './dto/input';
+
 import { map as asyncMap } from 'awaity';
 import {
   handleGetPagination,
@@ -29,10 +19,19 @@ import {
   IConversation,
   MemberType,
   MemberTypeArray,
-} from './shared/chat.interface';
+} from './shared/chat.common.interface';
 import { handleErrorNotFound } from '../utils';
-import { UserService } from '../user/user.service';
 import { MessageService } from './message.service';
+import { JoinRoomDTO } from './dto/input/join-room.dto';
+import { SendRoomMessageDTO } from './dto/input/send-room-message.dto';
+import { DeleteConversationDTO } from './dto/input/delete-conversation.dto';
+import { EditMessageDTO } from './dto/input/edit-message.dto';
+import { DeleteMessageDTO } from './dto/input/delete-message.dto';
+import { TypingDTO } from './dto/input/typing.dto';
+import { RequestContactListDTO } from './dto/input/request-contact-list.dto';
+import { RequestRoomMessageDTO } from './dto/input/request-room-message.dto';
+import { SearchUserByNameDTO } from './dto/input/search-user-by-name.dto';
+import { IUserRepository } from '../user/repository/iuser.repository';
 
 @Injectable()
 export class ChatService {
@@ -40,7 +39,8 @@ export class ChatService {
   constructor(
     @Inject(ModelName.CONVERSATION)
     private readonly conversationModel: Model<IConversation>,
-    private readonly userService: UserService,
+    @Inject('UserRepository')
+    private readonly userRepository: IUserRepository,
     private readonly messageService: MessageService,
   ) {}
 
@@ -358,7 +358,7 @@ export class ChatService {
     try {
       const { name } = payload;
 
-      const userListResponse = await this.userService.searchUserByName({
+      const userListResponse = await this.userRepository.searchUserByName({
         offset: 1,
         limit: 10,
         name: name,

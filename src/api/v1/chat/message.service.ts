@@ -1,25 +1,29 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Injectable } from '@nestjs/common';
-import { filter as asyncFilter, reduce as asyncReduce } from 'awaity';
+import { Inject, Injectable } from '@nestjs/common';
+import { reduce as asyncReduce } from 'awaity';
 import {
   ConversationTypeArray,
   IConversation,
   MemberType,
   MemberTypeArray,
   MessageType,
-} from './shared/chat.interface';
+} from './shared/chat.common.interface';
 import { isEmpty } from '../common';
 import { Model } from 'mongoose';
-import { RestFullAPI, errorHandler, handleErrorNotFound } from '../utils';
-import { STATUS_CODE, STATUS_MESSAGE } from '../common/enums/api_enums';
+import { errorHandler, handleErrorNotFound } from '../utils';
+import { STATUS_MESSAGE } from '../common/enums/api.enum';
 
-import { ObjectType } from '../common/types/common';
 import { UserService } from '../user/user.service';
 import { isSingleChat } from './helper';
+import { IUserRepository } from '../user/repository/iuser.repository';
 
 @Injectable()
 export class MessageService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    @Inject('UserRepository')
+    private readonly userRepository: IUserRepository,
+  ) {}
 
   public async handleFilterMessageAlreadyExist(messages: MemberType[]) {
     if (isEmpty(messages)) return [];
@@ -31,12 +35,12 @@ export class MessageService {
         { content, sender, isDelete, id, createdAt, updatedAt }: MessageType,
       ) => {
         if (!isDelete) {
-          const senderDetail = await this.userService.findUniq(sender.id);
+          const senderDetail = await this.userRepository.findUniq(sender.id);
 
           messList.push({
             id,
             content,
-            sender: senderDetail?.toDto(),
+            sender: senderDetail,
             createdAt,
             updatedAt,
           });
