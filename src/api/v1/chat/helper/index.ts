@@ -1,4 +1,4 @@
-import { MemberType, MessageTypeArray } from '../shared/chat.interface';
+import { MemberType, MessageTypeArray } from '../shared/chat.common.interface';
 import { IUser } from '../../user/shared/user.interface';
 import { IPagination } from '../../common/shared/common.interface';
 

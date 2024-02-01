@@ -16,6 +16,7 @@ export const UserSchema = z
     first_name: z.string(),
     last_name: z.string(),
     middle_name: z.string(),
+    avatar: z.string(),
     is_active: z.boolean().default(true),
     is_reported: z.boolean().default(false),
     is_blocked: z.boolean().default(false),

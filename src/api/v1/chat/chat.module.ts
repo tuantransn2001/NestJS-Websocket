@@ -11,6 +11,9 @@ import { NotificationService } from '../notification/notification.service';
 import { Notification } from '../notification/entities/notification.entity';
 import { LocalFileService } from '../local-file/local-file.service';
 import { LocalFile } from '../local-file/entities/localFile.entity';
+import { UserRepository } from '../user/repository/user.repository';
+import { LocalFileRepository } from '../local-file/repository/localfile.repository';
+import { NotificationRepository } from '../notification/repository/notification.repository';
 
 @Module({
   imports: [DatabaseModule],
@@ -24,6 +27,18 @@ import { LocalFile } from '../local-file/entities/localFile.entity';
     MessageService,
     NotificationService,
     LocalFileService,
+    {
+      provide: 'UserRepository',
+      useClass: UserRepository,
+    },
+    {
+      provide: 'LocalFileRepository',
+      useValue: LocalFileRepository,
+    },
+    {
+      provide: 'NotificationRepository',
+      useValue: NotificationRepository,
+    },
   ],
 })
 class ChatModule {}

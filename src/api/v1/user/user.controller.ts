@@ -16,22 +16,20 @@ import {
   GetPagination,
   Pagination,
 } from '../common/decorator/pagination.decorator';
-import { SearchUserByNameDTO } from '../chat/dto/input';
 import { UserService } from './user.service';
 import LocalFilesInterceptor from '../common/interceptor/localFile.interceptor';
-import { LocalFileService } from '../local-file/local-file.service';
 import { UpdateUserDto } from '../auth/dto/input/updateUserDto';
 import { GetOneDto } from './shared/user.interface';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { SearchUserByNameSchema } from '../chat/shared/chat.shema';
 import { GetOneSchema } from './shared/user.schema';
+import {
+  SearchUserByNameDTO,
+  SearchUserByNameSchema,
+} from '../chat/dto/input/search-user-by-name.dto';
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly localFileService: LocalFileService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('/search')
   @UsePipes(new ZodValidationPipe(SearchUserByNameSchema))

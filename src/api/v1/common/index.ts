@@ -1,8 +1,7 @@
-import { ObjectType } from './types/common';
 import { IHealthCheck } from '../health-check/shared/healthCheck.interface';
 import * as moment from 'moment';
 
-export const isEmpty = (target: ObjectType | any[] | string): boolean => {
+export const isEmpty = (target?: ObjectType | ArrayType | string): boolean => {
   if (!target) return true;
   if (target instanceof String) return target.length === 0;
   if (target instanceof Array) return target.length === 0;

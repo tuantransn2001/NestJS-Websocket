@@ -12,16 +12,7 @@ import { Logger, UseGuards } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
 import { EVENTS } from './constants/event';
 import { ChatService } from './chat.service';
-import {
-  JoinRoomDTO,
-  SendRoomMessageDTO,
-  TypingDTO,
-  DeleteMessageDTO,
-  DeleteConversationDTO,
-  RequestRoomMessageDTO,
-  RequestContactListDTO,
-  EditMessageDTO,
-} from './dto/input';
+
 import { WsGuard } from '../common/guard/wsGuard';
 import { WsAuthMiddleware } from '../common/middleware/wsAuth.middleware';
 import {
@@ -31,17 +22,34 @@ import {
 } from '../notification/shared/notification.interface';
 import { NotificationService } from '../notification/notification.service';
 import { ZodValidationPipe } from 'nestjs-zod';
-import {
-  DeleteConversationSchema,
-  DeleteMessageSchema,
-  EditMessageSchema,
-  JoinRoomSchema,
-  RequestContactListSchema,
-  RequestMessageSchema,
-  SendRoomMessageSchema,
-  TypingSchema,
-} from './shared/chat.shema';
+
 import { RemoveNotificationSchema } from '../notification/shared/notification.schema';
+import { JoinRoomDTO, JoinRoomSchema } from './dto/input/join-room.dto';
+import {
+  SendRoomMessageDTO,
+  SendRoomMessageSchema,
+} from './dto/input/send-room-message.dto';
+import {
+  DeleteMessageDTO,
+  DeleteMessageSchema,
+} from './dto/input/delete-message.dto';
+import {
+  DeleteConversationDTO,
+  DeleteConversationSchema,
+} from './dto/input/delete-conversation.dto';
+import {
+  RequestMessageSchema,
+  RequestRoomMessageDTO,
+} from './dto/input/request-room-message.dto';
+import {
+  RequestContactListDTO,
+  RequestContactListSchema,
+} from './dto/input/request-contact-list.dto';
+import {
+  EditMessageDTO,
+  EditMessageSchema,
+} from './dto/input/edit-message.dto';
+import { TypingDTO, TypingSchema } from './dto/input/typing.dto';
 
 @UseGuards(WsGuard)
 @WebSocketGateway({ cors: true })

@@ -1,4 +1,3 @@
-import * as dotenv from 'dotenv';
 import {
   MiddlewareConsumer,
   Module,
@@ -10,33 +9,13 @@ import { HealthCheckModule } from './health-check/healthCheck.module';
 import { LoggerModule } from 'nestjs-pino';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
-import { KnexModule } from 'nestjs-knex';
 import { UserModule } from './user/user.module';
 import { LocalFileModule } from './local-file/local-file.module';
 import { ConfigModule } from '@nestjs/config';
 import { HttpAuthMiddleware } from './common/middleware/httpAuth.middleware';
 
-dotenv.config();
-
 @Module({
   imports: [
-    KnexModule.forRootAsync({
-      useFactory: () => {
-        return {
-          config: {
-            client: 'pg',
-            connection: process.env.POSTGRESQL_DB_CONNECT_LINK,
-            migrations: {
-              directory: './src/api/v1/database/knex/migrations',
-              extension: 'ts',
-              loadExtensions: ['.ts'],
-            },
-            seeds: {},
-            debug: false,
-          },
-        };
-      },
-    }),
     LoggerModule.forRoot({
       pinoHttp: {
         transport: {
