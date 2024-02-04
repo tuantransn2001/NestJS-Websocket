@@ -4,13 +4,13 @@ import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
 import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { ModelName } from '../common/enums/common';
-import { Conversation } from './entities/conversation.entity';
+import { ConversationSchema } from './entities/conversation.entity';
 import { UserService } from '../user/user.service';
 import { MessageService } from './message.service';
 import { NotificationService } from '../notification/notification.service';
-import { Notification } from '../notification/entities/notification.entity';
+import { NotificationSchema } from '../notification/entities/notification.entity';
 import { LocalFileService } from '../local-file/local-file.service';
-import { LocalFile } from '../local-file/entities/localFile.entity';
+import { LocalFileSchema } from '../local-file/entities/localFile.entity';
 import { UserRepository } from '../user/repository/user.repository';
 import { LocalFileRepository } from '../local-file/repository/localfile.repository';
 import { NotificationRepository } from '../notification/repository/notification.repository';
@@ -18,9 +18,9 @@ import { NotificationRepository } from '../notification/repository/notification.
 @Module({
   imports: [DatabaseModule],
   providers: [
-    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFile),
-    ...modelDefineProvider(ModelName.CONVERSATION, Conversation),
-    ...modelDefineProvider(ModelName.NOTIFICATION, Notification),
+    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFileSchema),
+    ...modelDefineProvider(ModelName.CONVERSATION, ConversationSchema),
+    ...modelDefineProvider(ModelName.NOTIFICATION, NotificationSchema),
     ChatGateway,
     ChatService,
     UserService,
@@ -39,8 +39,10 @@ import { NotificationRepository } from '../notification/repository/notification.
       provide: 'NotificationRepository',
       useValue: NotificationRepository,
     },
+    {
+      provide: 'MessageService',
+      useClass: MessageService,
+    },
   ],
 })
-class ChatModule {}
-
-export { ChatModule };
+export class ChatModule {}

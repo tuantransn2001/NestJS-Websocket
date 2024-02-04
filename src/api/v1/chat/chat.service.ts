@@ -41,6 +41,7 @@ export class ChatService {
     private readonly conversationModel: Model<IConversation>,
     @Inject('UserRepository')
     private readonly userRepository: IUserRepository,
+    @Inject('MessageService')
     private readonly messageService: MessageService,
   ) {}
 

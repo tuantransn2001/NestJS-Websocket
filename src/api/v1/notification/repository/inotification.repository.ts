@@ -4,13 +4,13 @@ import { INotification } from '../shared/notification.interface';
 export interface INotificationRepository
   extends INoSQLBaseRepository<INotification> {
   findByUser({
-    memberId,
-    memberType,
+    userId,
+    userType,
     limit,
     offset,
   }: {
-    memberId: string;
-    memberType: string;
+    userId: string;
+    userType: string;
     limit: number;
     offset: number;
   }): Promise<FindAllResponse<INotification>>;

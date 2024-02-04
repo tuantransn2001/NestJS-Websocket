@@ -2,7 +2,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { reduce as asyncReduce } from 'awaity';
 import {
-  ConversationTypeArray,
   IConversation,
   MemberType,
   MemberTypeArray,
@@ -14,8 +13,9 @@ import { errorHandler, handleErrorNotFound } from '../utils';
 import { STATUS_MESSAGE } from '../common/enums/api.enum';
 
 import { UserService } from '../user/user.service';
-import { isSingleChat } from './helper';
+
 import { IUserRepository } from '../user/repository/iuser.repository';
+import { isSingleChat } from './helper';
 
 @Injectable()
 export class MessageService {
@@ -101,6 +101,7 @@ export class MessageService {
       return errorHandler(err);
     }
   }
+
   public async handleGetAllMessageByConversationID(
     ConversationModel: Model<IConversation>,
     id: string,
@@ -142,23 +143,21 @@ export class MessageService {
     if (isEmpty(members)) {
       return [];
     } else {
-      const IDList: any = members.reduce(
-        (IdListResult: ObjectType, member: MemberType) => {
+      const IDList = members.reduce(
+        (idListResult, member: MemberType) => {
           const currentUserType = member.type as keyof ObjectType;
           const currentUserID = member.id;
 
-          IdListResult.ids[currentUserType].push(currentUserID);
+          idListResult.ids[currentUserType].push(currentUserID);
 
-          return IdListResult;
+          return idListResult;
         },
         {
           ids: { admin: [], user: [], guest: [] },
         },
-      ) as ObjectType;
+      );
 
-      const result: ObjectType = (await this.userService.searchListUser(
-        IDList,
-      )) as ObjectType;
+      const result: ObjectType = await this.userService.searchListUser(IDList);
 
       return Object.entries(result)
         .map(([_, users]) => users)

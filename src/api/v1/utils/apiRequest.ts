@@ -6,7 +6,7 @@ type CreateInstancePayload = {
 };
 
 export class Axios {
-  private static URL: string = process.env.UNIBERTY_BASE_URL;
+  private static URL: string = process.env.SERVICE_BASE_URL;
 
   public static createInstance({ baseURL, token }: CreateInstancePayload) {
     return axios.create({

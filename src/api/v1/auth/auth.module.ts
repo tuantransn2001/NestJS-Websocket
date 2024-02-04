@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { modelDefineProvider } from '../common/provider/modelDefine.provider';
-import { LocalFile } from '../local-file/entities/localFile.entity';
+import { LocalFileSchema } from '../local-file/entities/localFile.entity';
 import { ModelName } from '../common/enums/common';
 import { DatabaseModule } from '../database/database.module';
 import { UserRepository } from '../user/repository/user.repository';
@@ -14,7 +14,7 @@ import { UserRepository } from '../user/repository/user.repository';
   ],
   controllers: [AuthController],
   providers: [
-    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFile),
+    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFileSchema),
     AuthService,
     {
       provide: 'UserRepository',

@@ -4,7 +4,7 @@ import {
   BaseEntitySchema,
   StringType,
 } from '../../common/shared/common.schema';
-import { checkFileType } from '../../utils/checkFileType';
+import { FileHandler } from '../../utils/fileHandler';
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ export const AddAvatarSchema = z.object({
     .any()
     .refine((file) => file.size < process.env.MAX_FILE_SIZE, 'Max size is 3MB.') // file size validation
     .refine(
-      (file) => checkFileType(file),
+      (file) => FileHandler.checkFileType(file),
       'Only .jpg, .gif, .png formats are supported.',
     ),
 });

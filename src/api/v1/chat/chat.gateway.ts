@@ -8,7 +8,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
-import { Logger, UseGuards } from '@nestjs/common';
+import { Inject, Logger, UseGuards } from '@nestjs/common';
 import { Server as SocketServer, Socket } from 'socket.io';
 import { EVENTS } from './constants/event';
 import { ChatService } from './chat.service';
@@ -21,7 +21,7 @@ import {
   RemoveNotificationDto,
 } from '../notification/shared/notification.interface';
 import { NotificationService } from '../notification/notification.service';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { ZodValidationPipe } from '../common/pipe/zod-validation.pipe';
 
 import { RemoveNotificationSchema } from '../notification/shared/notification.schema';
 import { JoinRoomDTO, JoinRoomSchema } from './dto/input/join-room.dto';
@@ -59,6 +59,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   webSocketServer: SocketServer;
 
   constructor(
+    @Inject('MessageService')
     private readonly chatService: ChatService,
     private readonly notificationService: NotificationService,
   ) {}

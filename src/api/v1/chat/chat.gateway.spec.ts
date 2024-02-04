@@ -3,18 +3,16 @@ import { ChatGateway } from './chat.gateway';
 import { INestApplication } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { modelDefineProvider } from '../common/provider/modelDefine.provider';
-import { Conversation } from './entities/conversation.entity';
-import { UnibertyService } from '../uniberty/uniberty.service';
+import { ConversationSchema } from './entities/conversation.entity';
 import { DatabaseModule } from '../database/database.module';
-import { MODEL_NAME } from '../common/enums/common';
+import { ModelName } from '../common/enums/common';
 async function createNestApp(): Promise<INestApplication> {
   const testingModule = await Test.createTestingModule({
     imports: [DatabaseModule],
     providers: [
-      ...modelDefineProvider(MODEL_NAME.CONVERSATION, Conversation),
+      ...modelDefineProvider(ModelName.CONVERSATION, ConversationSchema),
       ChatGateway,
       ChatService,
-      UnibertyService,
     ],
   }).compile();
   return testingModule.createNestApplication();
