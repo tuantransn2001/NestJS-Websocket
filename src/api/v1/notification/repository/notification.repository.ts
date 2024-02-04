@@ -22,31 +22,30 @@ export abstract class NotificationRepository
   }
 
   public async findByUser({
-    memberId,
-    memberType,
+    userId,
+    userType,
     limit,
     offset,
   }: {
-    memberId: string;
-    memberType: string;
+    userId: string;
+    userType: string;
     limit: number;
     offset: number;
   }): Promise<FindAllResponse<INotification>> {
+    const condition = {
+      'receiver.id': userId,
+      'receiver.type': userType,
+    };
+
     const notifications = await this.notificationModel
-      .find({
-        'receiver.id': memberId,
-        'receiver.type': memberType,
-      })
+      .find(condition)
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit)
       .lean()
       .exec();
 
-    const count = await this.notificationModel.count({
-      'receiver.id': memberId,
-      'receiver.type': memberType,
-    });
+    const count = await this.notificationModel.count(condition);
 
     const items = await asyncMap(
       notifications,

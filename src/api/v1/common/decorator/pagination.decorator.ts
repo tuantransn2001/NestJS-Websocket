@@ -72,13 +72,11 @@ export const GetPagination = createParamDecorator(
       search: {},
     };
 
-    if (req.query.sort) {
+    if (req.query.sort)
       paginationParams.sort = parseSort(req.query.sort.toString());
-    }
 
-    if (req.query.search) {
+    if (req.query.search)
       paginationParams.search = parseSearch(req.query.search.toString());
-    }
 
     if (!req.query.limit || !req.query.offset) return paginationParams;
 

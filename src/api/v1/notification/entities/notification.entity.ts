@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
   type: { type: String, enum: USER_TYPE },
 });
 
-export const Notification = new mongoose.Schema(
+export const NotificationSchema = new mongoose.Schema(
   {
     id: { type: String, default: uuidv4 },
     title: { type: String },

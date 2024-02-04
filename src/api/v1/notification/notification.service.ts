@@ -33,8 +33,8 @@ export class NotificationService {
 
       const foundUserNotifications =
         await this.notificationRepository.findByUser({
-          memberId: payload.userId,
-          memberType: payload.userType,
+          userId: payload.userId,
+          userType: payload.userType,
           limit: _limit,
           offset: _skip,
         });

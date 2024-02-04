@@ -1,14 +1,10 @@
-import * as dotenv from 'dotenv';
-
-dotenv.config();
-
 import { Module } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { DatabaseModule } from '../database/database.module';
 import { modelDefineProvider } from '../common/provider/modelDefine.provider';
 import { ModelName } from '../common/enums/common';
-import { LocalFile } from '../local-file/entities/localFile.entity';
+import { LocalFileSchema } from '../local-file/entities/localFile.entity';
 import { UserRepository } from './repository/user.repository';
 import { LocalFileRepository } from '../local-file/repository/localfile.repository';
 
@@ -16,7 +12,7 @@ import { LocalFileRepository } from '../local-file/repository/localfile.reposito
   imports: [DatabaseModule],
   controllers: [UserController],
   providers: [
-    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFile),
+    ...modelDefineProvider(ModelName.LOCAL_FILE, LocalFileSchema),
     UserService,
     {
       provide: 'UserRepository',

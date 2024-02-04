@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DeleteMessageSchema } from './delete-message.dto';
 import { MessageType } from '../../shared/chat.common.schema';
+
 export const EditMessageSchema = DeleteMessageSchema.merge(
   z.object({
     dto: MessageType.omit({
